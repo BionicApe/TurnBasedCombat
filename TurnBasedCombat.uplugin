@@ -1,0 +1,50 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "TurnBasedCombat",
+  "Description": "",
+  "Category": "Other",
+  "CreatedBy": "",
+  "CreatedByURL": "",
+  "DocsURL": "",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "CanContainContent": true,
+  "IsBetaVersion": false,
+  "IsExperimentalVersion": false,
+  "Installed": false,
+  "Modules": [
+    {
+      "Name": "TurnBasedCombat",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault",
+      "AdditionalDependencies": [
+        "FocusInteractions"
+      ]
+    },
+    {
+      "Name": "TurnBasedCombatEditor",
+      "Type": "Editor",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "FocusInteractions",
+      "Enabled": true
+    },
+    {
+      "Name": "BAMultiplayer",
+      "Enabled": true
+    },
+    {
+      "Name": "InventorySystem",
+      "Enabled": true
+    },
+    {
+      "Name": "DamageSystem",
+      "Enabled": true
+    }
+  ]
+}
