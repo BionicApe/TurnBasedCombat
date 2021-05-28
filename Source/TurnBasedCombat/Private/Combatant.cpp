@@ -13,7 +13,8 @@
 ACombatant::ACombatant()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	SetReplicates(true);
+	//SetReplicates(true);//Directly setting bReplicates is the correct procedure for pre-init actors
+	bReplicates = true;
 	SetReplicatingMovement(false);
 
 	InventoryComp = CreateDefaultSubobject<UInventoryComponent>(TEXT("InventoryComp"));

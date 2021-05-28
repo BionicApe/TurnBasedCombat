@@ -23,7 +23,8 @@ AFight::AFight() : Super()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	SetReplicates(true);
+	//SetReplicates(true);//Directly setting bReplicates is the correct procedure for pre-init actors
+	bReplicates = true;
 	SetReplicateMovement(false);
 	bAlwaysRelevant = true;
 	//if (!CombatantClass)

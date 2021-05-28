@@ -26,7 +26,8 @@ AArena::AArena()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	SetReplicates(true);
+	//SetReplicates(true);//I commented it because it says "Directly setting bReplicates is the correct procedure for pre-init actors."
+	bReplicates = true;//Directly setting bReplicates is the correct procedure for pre-init actors.
 	SetReplicateMovement(false);
 
 	PrimaryActorTick.bCanEverTick = false;

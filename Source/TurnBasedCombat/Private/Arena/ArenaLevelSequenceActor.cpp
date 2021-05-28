@@ -5,8 +5,7 @@
 
 AArenaLevelSequenceActor::AArenaLevelSequenceActor(const FObjectInitializer& Init) : Super(Init)
 {
-	bReplicates = false;
-	SetReplicates(false);
+	bReplicates = false;//Directly setting bReplicates is the correct procedure for pre-init actors.
 	
 	bReplicatePlayback = false;
 

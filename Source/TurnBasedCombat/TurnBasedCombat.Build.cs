@@ -27,7 +27,9 @@ public class TurnBasedCombat : ModuleRules
 				"Core",
 				"UMG",
 				"Engine",
-				"FocusInteractions"
+				"CoreUObject",
+				"FocusInteractions",
+				"BAMultiplayer"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -36,12 +38,10 @@ public class TurnBasedCombat : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"CoreUObject",
 				"Slate",
 				"SlateCore",
 				"LevelSequence",
 				"MovieScene",
-				"BAMultiplayer",
 				"InventorySystem",
 				"DamageSystem",
 				"AIModule"
