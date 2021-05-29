@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "TrpgCombatTypes.h"
+#include "UObject/CoreNet.h"
 #include "Fight.generated.h"
 
 class UBAProfile;

@@ -56,7 +56,7 @@ APlayerCombatPawn::APlayerCombatPawn()
 	FocusTracer->OnEndFocus.AddDynamic(this, &APlayerCombatPawn::OnEndFocus);
 	FocusTracer->OnNewActionsSets.AddDynamic(this, &APlayerCombatPawn::OnNewActionsSets);
 
-	SetReplicates(true);
+	bReplicates = true;//Epic says don't use SetReplicates in the constructor.
 	SetReplicateMovement(false);
 	//SetAutonomousProxy(true);
 }
@@ -79,6 +79,7 @@ void APlayerCombatPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(APlayerCombatPawn, bIsMyTurn);
 	DOREPLIFETIME(APlayerCombatPawn, Profile);
 	DOREPLIFETIME(APlayerCombatPawn, Fight);
+	DOREPLIFETIME(APlayerCombatPawn, bHackIsCombatFinished);
 }
 
 APlayerController* APlayerCombatPawn::GetPlayerController() const

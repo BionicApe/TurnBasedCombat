@@ -7,6 +7,8 @@
 #include "ArenaPerformer.h"
 #include "ArenaPerformerSkeletal.generated.h"
 
+class AActor;
+
 /**
  * 
  */

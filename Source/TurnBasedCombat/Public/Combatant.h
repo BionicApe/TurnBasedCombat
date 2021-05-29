@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "UObject/CoreNet.h"
 #include "Interfaces/ProfileAsignable.h"
 #include "DamageSystemTypes.h"
+#include "Engine/EngineTypes.h"
 #include "Combatant.generated.h"
 
 class UInventoryComponent;

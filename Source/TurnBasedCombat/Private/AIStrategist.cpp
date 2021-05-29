@@ -6,6 +6,9 @@
 #include "Combatant.h"
 #include "Fight.h"
 #include "ActionType.h"
+#include "Engine/EngineTypes.h"
+#include "Engine/World.h"
+#include "TimerManager.h"
 
 void UAIStrategist::StartFight(AFight* NewFight)
 {

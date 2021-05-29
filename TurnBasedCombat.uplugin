@@ -20,13 +20,21 @@
       "Type": "Runtime",
       "LoadingPhase": "PreDefault",
       "AdditionalDependencies": [
-        "FocusInteractions"
+        "FocusInteractions",
+        "InventorySystem",
+        "DamageSystem",
+        "BAMultiplayer",
+        "Engine",
+        "CoreUObject"
       ]
     },
     {
       "Name": "TurnBasedCombatEditor",
       "Type": "Editor",
-      "LoadingPhase": "Default"
+      "LoadingPhase": "Default",
+      "AdditionalDependencies": [
+         "TurnBasedCombat"
+      ]
     }
   ],
   "Plugins": [

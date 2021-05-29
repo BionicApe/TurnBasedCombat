@@ -4,10 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Combatant.h"
+#include "UObject/CoreNet.h"
+#include "DamageSystemTypes.h"
 #include "CombatantSkeletal.generated.h"
 
-class FLifetimeProperty;
 class UHealthWidgetComponent;
+class UInventoryItem;
+class USkeletalMeshComponent;
 
 /**
  * 

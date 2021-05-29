@@ -25,9 +25,9 @@ public class TurnBasedCombat : ModuleRules
 			new string[]
 			{
 				"Core",
-				"UMG",
-				"Engine",
 				"CoreUObject",
+				"Engine",
+				"UMG",
 				"FocusInteractions",
 				"BAMultiplayer"
 				// ... add other public dependencies that you statically link with here ...

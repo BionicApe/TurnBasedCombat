@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "ActionType.h"
+
+class AActor;
 //#include "TrpgCombatTypes.h"
 #include "ActionType_TurnBasedCombat.generated.h"
 

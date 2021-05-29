@@ -23,32 +23,14 @@ AFight::AFight() : Super()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	//SetReplicates(true);//Directly setting bReplicates is the correct procedure for pre-init actors
-	bReplicates = true;
+	bReplicates = true;//Epic recommends to not use Set Replicates in Constructor "Directly setting bReplicates is the correct procedure for pre-init actors"
 	SetReplicateMovement(false);
 	bAlwaysRelevant = true;
-	//if (!CombatantClass)
-	//{
-	//	LoadConfig();//Load config from file
-	//}
-	static ConstructorHelpers::FClassFinder<ACombatant> CombatantClassRef(TEXT("/Game/ThePrison/Blueprints/TurnBasedCombat/BP_ThePrisonCombatant.BP_ThePrisonCombatant_C"));
-	CombatantClass = CombatantClassRef.Class;
 }
 
 void AFight::BeginPlay()
 {
 	Super::BeginPlay();
-	//if (HasAuthority())
-	//{
-	//	FTimerDelegate TimerCallback;
-	//	TimerCallback.BindLambda([this]
-	//		{
-	//			StartFight();
-	//		});
-	//	FTimerHandle Handle;
-	//	GetWorld()->GetTimerManager().SetTimer(Handle, TimerCallback, 2.f, false);
-	//}
-
 	FightState = EFightState::INITIALIZING;
 }
 
