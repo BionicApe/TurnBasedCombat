@@ -29,6 +29,7 @@ public class TurnBasedCombat : ModuleRules
 				"Engine",
 				"UMG",
 				"FocusInteractions",
+				"DamageSystem",
 				"BAMultiplayer"
 				// ... add other public dependencies that you statically link with here ...
 			}
@@ -43,7 +44,6 @@ public class TurnBasedCombat : ModuleRules
 				"LevelSequence",
 				"MovieScene",
 				"InventorySystem",
-				"DamageSystem",
 				"AIModule"
 				// ... add private dependencies that you statically link with here ...	
 			}

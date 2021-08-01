@@ -15,6 +15,7 @@
 #include "CharacterSpawner.h"
 #include "EngineUtils.h"
 #include "Interfaces/ProfileAsignable.h"
+#include "GameFramework/PlayerController.h"
 
 
 

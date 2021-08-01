@@ -11,6 +11,10 @@ bool UFighterProfile::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bun
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 	WroteSomething |= Channel->ReplicateSubobject(Inventory, *Bunch, *RepFlags);
+	if (Inventory)
+	{
+		WroteSomething |= Inventory->ReplicateSubobjects(Channel, Bunch, RepFlags);
+	}
 	return WroteSomething;
 }
 

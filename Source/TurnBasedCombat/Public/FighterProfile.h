@@ -18,12 +18,12 @@ class TURNBASEDCOMBAT_API UFighterProfile : public UBAProfile
 {
 	GENERATED_BODY()
 
-public:	
+public:
 
-	UPROPERTY(Replicated, EditDefaultsOnly, Category = "ActionType")
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "ActionType")
 	UInventory* Inventory;
 
-	UPROPERTY(Replicated, EditDefaultsOnly, Category = "ActionType")
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category = "ActionType")
 	int32 ActionPoints = 100;
 
 	UPROPERTY(BlueprintReadWrite, Category = TrpgCombat)

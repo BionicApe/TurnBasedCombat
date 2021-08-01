@@ -9,7 +9,6 @@
 #include "AIController.h"
 #include "TurnBasedCombatSubsystem.generated.h"
 
-class UPrisonerProfile;
 class UObject;
 class AFight;
 class UBAProfile;
