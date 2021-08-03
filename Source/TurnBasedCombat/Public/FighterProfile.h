@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "BAProfile.h"
+#include "Interfaces/InventoryOwner.h"
 #include "FighterProfile.generated.h"
 
 class UInventory;
@@ -14,7 +15,7 @@ class UTeam;
  *
  */
 UCLASS()
-class TURNBASEDCOMBAT_API UFighterProfile : public UBAProfile
+class TURNBASEDCOMBAT_API UFighterProfile : public UBAProfile, public IInventoryOwner
 {
 	GENERATED_BODY()
 
@@ -36,4 +37,10 @@ public:
 
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+
+	//IInventoryOwner
+	virtual void SetSelectedItem(UInventoryItem* InventoryItem) {}
+	virtual UInventory* GetInventory() const { return Inventory; }
+	virtual void GetInventoryItemsList(TArray<UInventoryItem*>& MyInventoryItems) const {};
+	//End IInventoryOwner
 };
