@@ -213,7 +213,7 @@ ACharacterSpawner* UTurnBasedCombatSubsystem::FindSpawnerActor(UWorld* World, UB
 	for (TActorIterator<ACharacterSpawner> It(World); It; ++It)
 	{
 		ACharacterSpawner* CharacterSpawner = *It;
-		if (CharacterSpawner->ProfileId == Profile->ID)
+		if (CharacterSpawner->ProfileId == Profile->IntegerId)
 		{
 			return CharacterSpawner;
 		}

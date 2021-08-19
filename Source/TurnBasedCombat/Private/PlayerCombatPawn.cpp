@@ -409,7 +409,7 @@ UInventory* APlayerCombatPawn::GetInventory() const
 {
 	if (UFighterProfile* FighterProfile = Cast<UFighterProfile>(Profile))
 	{
-		return FighterProfile->Inventory;
+		return FighterProfile->GetInventory();
 	}
 	return nullptr;
 }
@@ -418,9 +418,9 @@ void APlayerCombatPawn::GetInventoryItemsList(TArray<UInventoryItem*>& MyInvento
 {
 	if (UFighterProfile* FighterProfile = Cast<UFighterProfile>(Profile))
 	{
-		if (FighterProfile->Inventory)
+		if (FighterProfile->GetInventory())
 		{
-			FighterProfile->Inventory->GetInventoryItemsList(MyInventoryItems);
+			FighterProfile->GetInventory()->GetInventoryItemsList(MyInventoryItems);
 		}
 	}
 }

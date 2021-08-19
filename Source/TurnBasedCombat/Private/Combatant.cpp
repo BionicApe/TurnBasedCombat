@@ -52,7 +52,8 @@ void ACombatant::SetBAProfile(UBAProfile* NewProfile)
 	
 	if (Profile)
 	{
-		InventoryComp->Inventory = Profile->Inventory;
+		//InventoryComp->SetInventory(Profile->GetInventory());
+		InventoryComp->Inventory = Profile->GetInventory();
 	}
 }
 
@@ -68,8 +69,8 @@ void ACombatant::OnNewItemSelected(UInventoryItem* InventoryItem)
 
 void ACombatant::StartTurnUpdateValues()
 {
-	ActionPoints = Profile->ActionPoints;
-	RemainingActions = Profile->AmountOfActionsPerTurn;
+	ActionPoints = Profile->GetActionPoints();
+	RemainingActions = Profile->GetActionsPerTurn();
 }
 
 void ACombatant::EndTurnUpdateValues()

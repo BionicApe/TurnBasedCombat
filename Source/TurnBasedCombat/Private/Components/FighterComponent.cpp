@@ -20,6 +20,8 @@ UFighterComponent::UFighterComponent()
 void UFighterComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UFighterComponent, Team);
+	Team;
 }
 
 void UFighterComponent::CreateFight(UFighterComponent* EnemyCombatComp)

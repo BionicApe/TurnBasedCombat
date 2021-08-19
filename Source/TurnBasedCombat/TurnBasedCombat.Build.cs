@@ -44,7 +44,8 @@ public class TurnBasedCombat : ModuleRules
 				"LevelSequence",
 				"MovieScene",
 				"InventorySystem",
-				"AIModule"
+				"AIModule",
+				"BionicApeUI"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

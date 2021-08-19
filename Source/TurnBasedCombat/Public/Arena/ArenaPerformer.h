@@ -1,4 +1,4 @@
-// Move 36 Studio
+// Created by Bionic Ape. All Rights Reserved.
 
 #pragma once
 

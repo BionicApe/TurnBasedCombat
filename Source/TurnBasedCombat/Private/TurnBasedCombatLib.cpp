@@ -5,6 +5,9 @@
 #include "Arena.h"
 #include "Kismet/GameplayStatics.h"
 #include "TurnBasedCombat.h"
+#include "FighterProfile.h"
+#include "Components/TrpgControlComponent.h"
+#include "Interfaces/TrpgControlOwner.h"
 
 AArena* UTurnBasedCombatLib::FindArena(const UObject* WorldContextObject, FVector const& Location)
 {
@@ -45,4 +48,28 @@ AArena* UTurnBasedCombatLib::FindArena(const UObject* WorldContextObject, FVecto
 	}
 
 	return ClosestArena;
+}
+
+UTrpgControlComponent* UTurnBasedCombatLib::GetTrpgControlComp(APlayerController* PlayerController)
+{
+	if (!PlayerController)
+	{
+		return nullptr;
+	}
+
+	if (ITrpgControlOwner* TrpgControlOwner = Cast<ITrpgControlOwner>(PlayerController))
+	{
+		return TrpgControlOwner->GetTrpgControlComp();//We assume It's been implemented correctly
+	}
+	else
+	{
+		//Developer didn't implement ITrpgControlOwner but it might have UTrpgControlComponent as a regular component
+		return Cast<UTrpgControlComponent>(PlayerController->GetComponentByClass(UTrpgControlComponent::StaticClass()));
+	}
+}
+
+UFighterProfile* UTurnBasedCombatLib::GetMainFighterProfile(APlayerController* PlayerController)
+{
+	UTrpgControlComponent* TrpgContComp = UTurnBasedCombatLib::GetTrpgControlComp(PlayerController);
+	return TrpgContComp ? TrpgContComp->GetMainFighterProfile() : nullptr;
 }
