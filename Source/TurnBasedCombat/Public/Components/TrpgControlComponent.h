@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/ActorComponent.h"
+#include "Components/ControlComponent.h"
 #include "Interfaces/BAMultiplayerDAO.h"
 #include "TrpgControlComponent.generated.h"
 
@@ -12,7 +12,7 @@ class AMockupFocusable;
 class APlayerController;
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class TURNBASEDCOMBAT_API UTrpgControlComponent : public UActorComponent
+class TURNBASEDCOMBAT_API UTrpgControlComponent : public UControlComponent
 {
 	GENERATED_BODY()
 
@@ -27,8 +27,8 @@ protected:
 public:
 
 
-	UFUNCTION(BlueprintCallable)
-	APlayerController* GetController() const;
+	//UFUNCTION(BlueprintCallable)
+	//APlayerController* GetController() const;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;

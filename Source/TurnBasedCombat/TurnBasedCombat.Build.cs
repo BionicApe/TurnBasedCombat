@@ -30,7 +30,8 @@ public class TurnBasedCombat : ModuleRules
 				"UMG",
 				"FocusInteractions",
 				"DamageSystem",
-				"BAMultiplayer"
+				"BAMultiplayer",
+				"BionicApeCore"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);

@@ -9,11 +9,11 @@
 #include "Mockup/MockupFocusable.h"
 
 #define LOCTEXT_NAMESPACE "TrpgControlComponent"
-
-APlayerController* UTrpgControlComponent::GetController() const
-{
-	return Cast<APlayerController>(GetOwner());
-}
+//
+//APlayerController* UTrpgControlComponent::GetController() const
+//{
+//	return Cast<APlayerController>(GetOwner());
+//}
 
 void UTrpgControlComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
