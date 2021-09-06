@@ -2,12 +2,8 @@
 
 
 #include "UI/ProfileWidget.h"
-#include "PlayerCombatPawn.h"
-#include "Fight.h"
-#include "Combatant.h"
-#include "BAProfile.h"
-#include "Fight.h"
-#include "TrpgCombatTypes.h"
+
+#include "FighterProfile.h"
 
 #include "Components/TextBlock.h"
 
@@ -15,13 +11,92 @@
 
 #include "Kismet/KismetTextLibrary.h"
 #include "TurnBasedCombatLib.h"
+#include "Components/ProgressBar.h"
+#include "BAUISubsystem.h"
+#include "UI/ConfirmWidget.h"
+#include "BAUIConfig.h"
+#include "Inventory/Inventory.h"
 
+
+#define LOCTEXT_NAMESPACE "UProfileWidgetTextNamespace"
+
+#pragma region AttributeButton
+
+UAttributeButton::UAttributeButton(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+	OnPressed.AddDynamic(this, &UAttributeButton::AddAttributePoint);
+}
+
+void UAttributeButton::AddAttributePoint()
+{
+	UE_LOG(LogTemp, Log, TEXT("UInventoryItemEntryListEntryStoreW::OnButtonPressed"));
+
+	if (Profile && UBAUISubsystem::GetInstance() && UBAUISubsystem::GetInstance()->UIConfig && UBAUISubsystem::GetInstance()->UIConfig->ConfirmWidgetClass)
+	{
+		FText ConfirmText = FText::Format(LOCTEXT("AddAttributePointConfirm", "Do you want to add one point to Attribute {0}?"), FText::FromString(AttributeName));
+
+		//UConfirmWidget* Confirm = UBAUISubsystem::CreateConfirm(this, LOCTEXT("OnLoginComplete_Successful", "You are successfully logged in"));
+
+		UConfirmWidget* ConfirmWidget = CreateWidget<UConfirmWidget>(this, UBAUISubsystem::GetInstance()->UIConfig->ConfirmWidgetClass);
+		ConfirmWidget->SetBodyText(ConfirmText);
+		ConfirmWidget->AddToViewport();
+
+		ConfirmWidget->OnFinishConfirmWidget.AddDynamic(this, &UAttributeButton::OnAddAttributePointConfirmed);
+	}
+}
+
+void UAttributeButton::OnAddAttributePointConfirmed(bool bIsConfirmed)
+{
+	if (bIsConfirmed)
+	{
+		if (UTrpgControlComponent* TrpgControlComp = UTurnBasedCombatLib::GetTrpgControlComp(GetOwningPlayer()))
+		{
+			TrpgControlComp->AddAttributePoint(Profile, AttributeName);
+		}
+	}
+}
+
+#pragma endregion 
 
 bool UProfileWidget::Initialize()
 {
 	bool bResult = Super::Initialize();
 	if (bResult)
 	{
+		if (AddDexterityButton)
+		{
+			AddDexterityButton->AttributeName = TEXT("Dexterity");
+			AddDexterityButton->Profile = Profile;
+		}
+		if (AddVitalityButton)
+		{
+			AddVitalityButton->AttributeName = TEXT("Vitality");
+			AddVitalityButton->Profile = Profile;
+		}
+
+		if (AddStrengthButton)
+		{
+			AddStrengthButton->AttributeName = TEXT("Strength");
+			AddStrengthButton->Profile = Profile;
+		}
+
+		if (AddAgilityButton)
+		{
+			AddAgilityButton->AttributeName = TEXT("Agility");
+			AddAgilityButton->Profile = Profile;
+		}
+
+		if (AddIntelligenceButton)
+		{
+			AddIntelligenceButton->AttributeName = TEXT("Intelligence");
+			AddIntelligenceButton->Profile = Profile;
+		}
+		if (AddCharismaButton)
+		{
+			AddCharismaButton->AttributeName = TEXT("Charisma");
+			AddCharismaButton->Profile = Profile;
+		}
+
 		Refresh();
 	}
 	return bResult;
@@ -36,13 +111,53 @@ void UProfileWidget::SetProfile(UFighterProfile* NewProfile)
 		{
 			//Remove old delegates
 			Profile->OnAttributesChanged.RemoveDynamic(this, &UProfileWidget::OnAttributesChanged);
+			if (Profile->Inventory)
+			{
+				//remove old delegates
+				Profile->Inventory->OnInventoryEntriesChanged.RemoveDynamic(this, &UProfileWidget::OnAttributesChanged);
+				Profile->Inventory->OnInventoryCoinsChanged.RemoveDynamic(this, &UProfileWidget::OnAttributesChanged);
+			}
 		}
 		Profile = NewProfile;//We set the new one!
 		if (Profile)
 		{
 			//add new delegates
 			Profile->OnAttributesChanged.AddDynamic(this, &UProfileWidget::OnAttributesChanged);
+			if (Profile->Inventory)
+			{
+				//add new delegates
+				Profile->Inventory->OnInventoryEntriesChanged.AddDynamic(this, &UProfileWidget::OnAttributesChanged);
+				Profile->Inventory->OnInventoryCoinsChanged.AddDynamic(this, &UProfileWidget::OnAttributesChanged);
+			}
 		}
+
+		{//Set Profile to Button Attributes
+			if (AddDexterityButton)
+			{
+				AddDexterityButton->Profile = Profile;
+			}
+			if (AddVitalityButton)
+			{
+				AddVitalityButton->Profile = Profile;
+			}
+			if (AddStrengthButton)
+			{
+				AddStrengthButton->Profile = Profile;
+			}
+			if (AddAgilityButton)
+			{
+				AddAgilityButton->Profile = Profile;
+			}
+			if (AddIntelligenceButton)
+			{
+				AddIntelligenceButton->Profile = Profile;
+			}
+			if (AddCharismaButton)
+			{
+				AddCharismaButton->Profile = Profile;
+			}
+		}//End: Set Profile to Button Attributes
+
 		Refresh();
 	}
 }
@@ -67,13 +182,38 @@ void UProfileWidget::Refresh()
 		{
 			ActionsPerTurnTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->ActionsPerTurn));
 		}
+		//XP
 		if (XpTextBlock)
 		{
 			XpTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Xp));
 		}
+		if (XpToLevelUpTextBlock)
+		{
+			XpToLevelUpTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(100 - (Profile->Attributes.Xp % 100)));
+		}
+		if (XPLevelTextBlock)
+		{
+			XPLevelTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.XPLevel));
+		}
+		if (XpProgressBar)
+		{
+			XpProgressBar->SetPercent(Profile->Attributes.GetPercentToNextLevel());
+		}
+		//End XP
+
 		if (CreationTimeTextBlock)
 		{
 			CreationTimeTextBlock->SetText(UKismetTextLibrary::AsDateTime_DateTime(Profile->CreationTime));
+		}
+
+		//Attributes
+		if (AttributePointsTextBlock)
+		{
+			AttributePointsTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.AttributePoints));
+		}
+		if (FelonyTextBlock)
+		{
+			FelonyTextBlock->SetText(UEnum::GetDisplayValueAsText(Profile->Attributes.Felony));
 		}
 		if (CharismaTextBlock)
 		{
@@ -87,14 +227,6 @@ void UProfileWidget::Refresh()
 		{
 			IntelligenceTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Intelligence));
 		}
-		if (FelonyTextBlock)
-		{
-			FelonyTextBlock->SetText(UEnum::GetDisplayValueAsText(Profile->Attributes.Felony));
-		}
-		if (XPLevelTextBlock)
-		{
-			XPLevelTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.XPLevel));
-		}
 		if (AgilityTextBlock)
 		{
 			AgilityTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Agility));
@@ -107,25 +239,16 @@ void UProfileWidget::Refresh()
 		{
 			StrengthTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Strength));
 		}
+		//End Attributes
+		//Inventory
+		if (CoinsTextBlock && Profile->Inventory)
+		{
+
+			CoinsTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Inventory->GetCoins()));
+
+		}
+		//End Inventory
 	}
-}
-
-void UProfileWidget::AddAttributePoint(FString AttributeName)
-{
-	UE_LOG(LogTemp, Log, TEXT("UInventoryItemEntryListEntryStoreW::OnButtonPressed"));
-
-	//if (ConfirmWidgetClass && StoreDH && StoreDH->SellerItemEntry && StoreDH->SellerItemEntry->Item)
-	//{
-	//	if (UConfirmWidget* ConfirmWidget = CreateWidget<UConfirmWidget>(GetWorld(), ConfirmWidgetClass))
-	//	{
-	//		ConfirmWidget->SetBodyText(
-	//			FText::Format(LOCTEXT("ConfirmBuy", "Do you want to buy {0} for {1} coins?"),	
-	//				FText::FromName(StoreDH->SellerItemEntry->Item->Name),
-	//				StoreDH->SellerItemEntry->Price));
-	//		ConfirmWidget->OnFinishConfirmWidget.AddDynamic(this, &UProfileWidget::OnFinishConfirmWidget, AttributeName);
-	//		ConfirmWidget->AddToViewport();
-	//	}
-	//}
 }
 
 void UProfileWidget::OnAttributesChanged()
@@ -133,11 +256,4 @@ void UProfileWidget::OnAttributesChanged()
 	Refresh();
 }
 
-void UProfileWidget::OnFinishConfirmWidget(bool bIsConfirmed, FString AttributeName)
-{
-	//if (bIsConfirmed)
-	//{
-	//	UTrpgControlComponent* TrpgControlComp = UTurnBasedCombatLib::GetTrpgControlComp(GetOwningPlayer());
-	//	TrpgControlComp->IncreaseAttribute(AttributeName);
-	//}
-}
+#undef LOCTEXT_NAMESPACE

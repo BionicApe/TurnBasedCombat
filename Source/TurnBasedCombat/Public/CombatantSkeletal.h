@@ -11,6 +11,7 @@
 class UHealthWidgetComponent;
 class UInventoryItem;
 class USkeletalMeshComponent;
+class UInventoryItem;
 
 /**
  * 

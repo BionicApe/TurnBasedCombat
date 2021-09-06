@@ -38,6 +38,10 @@ void UFighterProfile::SetAttributes(FFighterAttributes NewAttributes)
 int32 UFighterProfile::AddXp(int32 XpToAdd)
 {
 	Attributes.Xp += XpToAdd;
+	//TODO: Better way of leveling up
+	{
+		Attributes.XPLevel = Attributes.Xp / 100;//This should be replaced
+	}
 	OnAttributesChanged.Broadcast();
 	return Attributes.Xp;
 }
@@ -47,6 +51,56 @@ int32 UFighterProfile::AddAttributePoints(int32 PointsToAdd)
 	Attributes.AttributePoints += PointsToAdd;
 	OnAttributesChanged.Broadcast();
 	return Attributes.AttributePoints;
+}
+
+bool UFighterProfile::AddAttributePoint(FString AttributeName)
+{
+	if (Attributes.AttributePoints > 0)
+	{
+		if (AttributeName == "Strength")
+		{
+			Attributes.AttributePoints--;
+			Attributes.Strength++;
+			OnAttributesChanged.Broadcast();
+			return true;
+		}
+		else if (AttributeName == "Dexterity")
+		{
+			Attributes.AttributePoints--;
+			Attributes.Dexterity++;
+			OnAttributesChanged.Broadcast();
+			return true;
+		}
+		else if (AttributeName == "Agility")
+		{
+			Attributes.AttributePoints--;
+			Attributes.Agility++;
+			OnAttributesChanged.Broadcast();
+			return true;
+		}
+		else if (AttributeName == "Vitality")
+		{
+			Attributes.AttributePoints--;
+			Attributes.Vitality++;
+			OnAttributesChanged.Broadcast();
+			return true;
+		}
+		else if (AttributeName == "Intelligence")
+		{
+			Attributes.AttributePoints--;
+			Attributes.Intelligence++;
+			OnAttributesChanged.Broadcast();
+			return true;
+		}
+		else if (AttributeName == "Charisma")
+		{
+			Attributes.AttributePoints--;
+			Attributes.Charisma++;
+			OnAttributesChanged.Broadcast();
+			return true;
+		}
+	}
+	return false;
 }
 
 void UFighterProfile::OnRep_Attributes()

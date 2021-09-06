@@ -26,18 +26,11 @@ protected:
 
 public:
 
-
-	//UFUNCTION(BlueprintCallable)
-	//APlayerController* GetController() const;
-
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
 	UFUNCTION(BlueprintCallable)
 	void AddProfile(UFighterProfile* NewFighterProfile, bool bIsMainInventory);
-
-	UFUNCTION(Client, Reliable, BlueprintCallable)
-	void Client_ResponseReceived(bool bIsSuccessful, const FString& Message);
 
 	UFUNCTION(BlueprintCallable)
 	virtual UFighterProfile* GetMainFighterProfile() const { return MainProfile; }
@@ -53,4 +46,10 @@ public:
 	void AddAttributePoints(UFighterProfile* FighterProfile, AMockupFocusable* MockupFocusable);
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void Server_AddAttributePoints(UFighterProfile* FighterProfile, AMockupFocusable* MockupFocusable);
+
+	UFUNCTION(BlueprintCallable)
+	void AddAttributePoint(UFighterProfile* FighterProfile, const FString& AttributeName);
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void Server_AddAttributePoint(UFighterProfile* FighterProfile, const FString& AttributeName);
+
 };

@@ -72,6 +72,13 @@ struct TURNBASEDCOMBAT_API FFighterAttributes
 	//Original Game = Carisma
 	UPROPERTY(BlueprintReadWrite, EditAnywhere)
 	int32 Charisma;
+
+public:
+	
+	float GetPercentToNextLevel()
+	{
+		return (Xp % 100) / 100.f;
+	}
 	
 };
 
@@ -159,12 +166,18 @@ public:
 public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetXp() const { return Attributes.Xp; }
+	
 	UFUNCTION(BlueprintCallable)
 	void SetAttributes(FFighterAttributes NewAttributes);
+	
 	UFUNCTION(BlueprintCallable)
 	int32 AddXp(int32 XpToAdd);
+	
 	UFUNCTION(BlueprintCallable)
 	int32 AddAttributePoints(int32 PointsToAdd);
+	
+	UFUNCTION(BlueprintCallable)
+	bool AddAttributePoint(FString AttributeName);
 
 	UFUNCTION()
 	void OnRep_Attributes();
