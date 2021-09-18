@@ -2,7 +2,6 @@
 
 
 #include "Arena/ArenaPerformerSkeletal.h"
-#include "Actor.h"
 
 void AArenaPerformerSkeletal::Setup(AActor* Combatant)
 {

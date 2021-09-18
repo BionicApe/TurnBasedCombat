@@ -4,10 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Animation/SkeletalMeshActor.h"
-#include "ArenaPerformer.h"
+#include "Arena/ArenaPerformer.h"
 #include "ArenaPerformerSkeletal.generated.h"
-
-class AActor;
 
 /**
  * 
