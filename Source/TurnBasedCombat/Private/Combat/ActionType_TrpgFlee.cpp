@@ -25,7 +25,7 @@ bool UActionType_TrpgFlee::Validate(FTrpgPerformActionRequest const& Request, FT
 
 void UActionType_TrpgFlee::PerformAction(FTrpgPerformActionRequest const& Request, FTrpgPerformActionResult& Result) const
 {
-	int32 const Random = FMath::FRandRange(0, 100);
+	//int32 const Random = FMath::FRandRange(0, 100);
 
 /*	if (SuccessRate > Random)
 	{

@@ -33,7 +33,7 @@ bool UActionType_IncreaseAttributePoints::PerformActionType(FFocusPerformAction 
 
 	if (!PC)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UActionType_IncreaseAttributePoints::PerformActionType() ActionController is not an APlayerController"));
+		UE_LOG(LogTemp, Warning, TEXT("UActionType_IncreaseAttributePoints::PerformActionType() ActionController is not valid"));
 		return false;
 	}
 

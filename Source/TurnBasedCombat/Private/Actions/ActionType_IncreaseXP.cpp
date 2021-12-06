@@ -33,7 +33,7 @@ bool UActionType_IncreaseXP::PerformActionType(FFocusPerformAction Params) const
 
 	if (!PC)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UActionType_IncreaseXP::PerformActionType() ActionController is not an APlayerController"));
+		UE_LOG(LogTemp, Warning, TEXT("UActionType_IncreaseXP::PerformActionType() ActionController is not valid"));
 		return false;
 	}
 

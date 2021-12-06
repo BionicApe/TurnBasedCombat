@@ -35,7 +35,7 @@
 //
 //	if (!PC)
 //	{
-//		UE_LOG(LogTemp, Warning, TEXT("UActionType_ResetXP::PerformActionType() ActionController is not an APlayerController"));
+//		UE_LOG(LogTemp, Warning, TEXT("UActionType_ResetXP::PerformActionType() ActionController is not valid"));
 //		return false;
 //	}
 //

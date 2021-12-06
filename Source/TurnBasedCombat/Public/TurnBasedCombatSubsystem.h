@@ -6,7 +6,6 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "UObject/ScriptInterface.h"
 #include "Interfaces/TurnBasedStrategist.h"
-#include "AIController.h"
 #include "TurnBasedCombatSubsystem.generated.h"
 
 class UObject;
