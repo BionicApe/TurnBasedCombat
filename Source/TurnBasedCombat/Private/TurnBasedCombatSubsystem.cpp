@@ -22,7 +22,8 @@
 
 UTurnBasedCombatSubsystem::UTurnBasedCombatSubsystem() :Super()
 {
-
+	static ConstructorHelpers::FObjectFinder<UTurnBasedCombatConfig> ConfigRef(TEXT("/TurnBasedCombat/Config/TBCConfig.TBCConfig"));
+	TBCConfig = ConfigRef.Object;
 }
 
 void UTurnBasedCombatSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -39,6 +40,10 @@ void UTurnBasedCombatSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	AIStrategistObj = NewObject<UObject>(this, AIStrategistClass, TEXT("AIStrategist"));
 	AIStrategist = Cast<ITurnBasedStrategist>(AIStrategistObj);
 
+	if (!TBCConfigProxy.IsNull())
+	{
+		TBCConfig = TBCConfigProxy.LoadSynchronous();
+	}
 }
 
 ITurnBasedStrategist* UTurnBasedCombatSubsystem::GetStrategist(UBAProfile* Profile) const
@@ -95,23 +100,15 @@ void UTurnBasedCombatSubsystem::ProfileStartFight(UBAProfile* Profile, AFight* F
 	{
 		if (!Strategist)//We don't have the strategist already created
 		{
-			//Spawn a new Strategist
+			//Checks
 			UWorld* World = Fight->GetWorld();
-
 			if (!World)
 			{
 				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() World is null"));
 				return;
 			}
 
-			UBAMultiplayerSubsystem* MultiplayerSubsystem = GetGameInstance()->GetSubsystem<UBAMultiplayerSubsystem>();
-			if (!MultiplayerSubsystem)
-			{
-				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() MultiplayerSubsystem is null"));
-				return;
-			}
-
-			APlayerController* PC = MultiplayerSubsystem->GetPlayerControllerFromUser(Profile->BAUser);
+			APlayerController* PC = UBAMultiplayerSubsystem::GetPlayerControllerFromUser(this, Profile->BAUser);
 			if (!PC)
 			{
 				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerController is null"));
@@ -123,6 +120,14 @@ void UTurnBasedCombatSubsystem::ProfileStartFight(UBAProfile* Profile, AFight* F
 				Pawn->Destroy();// it can't be a ITurnBased Strategist, we destroy it// TODO SEE IF THIS IS ACTUALLY EVER EXECUTED
 			}
 
+			if (!PlayerCombatPawnClass)
+			{
+				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is null"));
+				return;
+			}
+			//END: Checks
+
+			//Spawn a new Strategist
 			APawn* CombatPawn = World->SpawnActor<APawn>(PlayerCombatPawnClass, Fight->GetActorTransform());
 			PC->Possess(CombatPawn);
 
@@ -176,7 +181,7 @@ void UTurnBasedCombatSubsystem::StartExplorationMode(UBAProfile* Profile, UObjec
 		{
 			UBAMultiplayerSubsystem* MultiplayerSubsystem = GetGameInstance()->GetSubsystem<UBAMultiplayerSubsystem>();
 			//Find my Player Controller
-			APlayerController* PC = MultiplayerSubsystem->GetPlayerControllerFromUser(Profile->BAUser);
+			APlayerController* PC = UBAMultiplayerSubsystem::GetPlayerControllerFromUser(this, Profile->BAUser);
 			if (PC)
 			{
 				PC->Possess(ExplorationPawn);

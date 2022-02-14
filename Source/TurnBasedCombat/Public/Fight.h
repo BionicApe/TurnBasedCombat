@@ -59,8 +59,14 @@ public:
 	UPROPERTY(Replicated, Category = TurnBasedCombat, EditAnywhere, BlueprintReadWrite)
 	AArena* Arena;
 
-	UPROPERTY(EditAnywhere, Config)
+	//WARNING: I Suspect I am having "Blueprint could not be loaded because it derives from an invalid class" because I was using "Config" here in the header, and this class is from a module that depends on this module
+	//WARNING 2: I moved this to CombatantClassProxy
+	UPROPERTY(EditAnywhere/*, Config*/)
 	TSubclassOf<ACombatant> CombatantClass;
+
+	//WARNING: See warning on CombatantClass, let's try with SoftClassPtr just in case loading the asset causes to make it "derives from an invalid class"!
+	UPROPERTY(Config)
+	TSoftClassPtr<ACombatant> CombatantClassProxy;
 
 	UPROPERTY(Category = TurnBasedCombat, VisibleAnywhere, Transient, Replicated)
 	TArray<FFightTurn> Turns;

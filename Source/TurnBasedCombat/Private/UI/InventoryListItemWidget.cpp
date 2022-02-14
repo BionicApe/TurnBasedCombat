@@ -12,7 +12,7 @@ bool UInventoryListItemWidget::Initialize()
 	{
 		if (InventoryButton)
 		{
-			InventoryButton->OnClicked.AddDynamic(this, &UInventoryListItemWidget::OnButtonClicked);
+			//InventoryButton->OnClicked.AddDynamic(this, &UInventoryListItemWidget::OnButtonClicked);
 			return true;
 		}
 	}

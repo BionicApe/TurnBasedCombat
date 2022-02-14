@@ -176,7 +176,7 @@ void APlayerCombatPawn::ZoomIn(float Rate)
 
 void APlayerCombatPawn::TrpgMouse1()
 {
-	FFocusPerformAction FocusPerformAction;
+		FFocusPerformAction FocusPerformAction;
 	if (FocusTracer->GetPerformActionWithIndex(0, FocusPerformAction))
 	{
 		//Server call

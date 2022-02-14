@@ -76,6 +76,8 @@ void AArena::BeginPlay()
 
 	if (ArenaSequences && GetWorld() /*&& GetLocalRole() == ROLE_Authority*/)//TODO: Check if we need this in the server
 	{
+		SequenceRootActor = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), GetActorTransform());
+
 		for (auto SequenceIt = ArenaSequences->Sequences.CreateIterator(); SequenceIt; ++SequenceIt)
 		{
 			const UActionType* Action = SequenceIt.Key();

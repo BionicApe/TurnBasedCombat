@@ -13,6 +13,7 @@ class AFight;
 class UBAProfile;
 class ACharacterSpawner;
 class AAIController;
+class UTurnBasedCombatConfig;
 
 /**
  *
@@ -24,17 +25,12 @@ class TURNBASEDCOMBAT_API UTurnBasedCombatSubsystem : public UGameInstanceSubsys
 
 public:
 
-	UPROPERTY(Config)
-	TSubclassOf<UObject> AIStrategistClass;
+
+	UPROPERTY(Transient)
+	UTurnBasedCombatConfig* TBCConfig;
 
 	UPROPERTY(Config)
-	TSubclassOf<APawn> PlayerCombatPawnClass;
-
-	UPROPERTY(Config)
-	TSubclassOf<APawn> ExplorationPawnClass;
-
-	UPROPERTY(Config)
-	TSubclassOf<AAIController> NpcAiControllerClass;
+	TSoftObjectPtr<UTurnBasedCombatConfig> TBCConfigProxy;
 
 	/**
 	 * Used to avoid being garbage collected

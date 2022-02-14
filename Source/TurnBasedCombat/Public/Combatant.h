@@ -20,7 +20,7 @@ class AFight;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnCombatantDIeDelegate);
 
-UCLASS()
+UCLASS(BlueprintType, Blueprintable)
 class TURNBASEDCOMBAT_API ACombatant : public AActor, public IProfileAsignable
 {
 	GENERATED_BODY()

@@ -122,7 +122,7 @@ public:
 	//void ReceivePerformAction(FArenaPerformance const& Request);
 
 	UFUNCTION(BlueprintCallable, Category = "TrpgCombat")
-		const FTransform& GetPawnTransform(int32 TeamIndex, int32 WarriorIndex) const;
+	const FTransform& GetPawnTransform(int32 TeamIndex, int32 WarriorIndex) const;
 
 	const FTransform& GetOrbitCameraTransform() const;
 
