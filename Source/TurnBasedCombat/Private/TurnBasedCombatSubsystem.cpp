@@ -16,14 +16,16 @@
 #include "EngineUtils.h"
 #include "Interfaces/ProfileAsignable.h"
 #include "GameFramework/PlayerController.h"
+#include <FighterProfile.h>
+#include <Config/TurnBasedCombatConfig.h>
+#include "UObject/SoftObjectPtr.h"
 
 
 
 
 UTurnBasedCombatSubsystem::UTurnBasedCombatSubsystem() :Super()
 {
-	static ConstructorHelpers::FObjectFinder<UTurnBasedCombatConfig> ConfigRef(TEXT("/TurnBasedCombat/Config/TBCConfig.TBCConfig"));
-	TBCConfig = ConfigRef.Object;
+
 }
 
 void UTurnBasedCombatSubsystem::Initialize(FSubsystemCollectionBase& Collection)
@@ -31,29 +33,30 @@ void UTurnBasedCombatSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UE_LOG(LogTurnBasedCombat, Log, TEXT("UTurnBasedCombatSubsystem Initialize"));
 	Super::Initialize(Collection);
 
-	if (!AIStrategistClass)
+	if (!ConfigProxy.IsNull())
 	{
-		UE_LOG(LogTurnBasedCombat, Error, TEXT("AIStrategistClass is null"));
-		AIStrategistClass = UAIStrategist::StaticClass();//Default Strategist Class
+		Config = ConfigProxy.LoadSynchronous();
 	}
 
-	AIStrategistObj = NewObject<UObject>(this, AIStrategistClass, TEXT("AIStrategist"));
-	AIStrategist = Cast<ITurnBasedStrategist>(AIStrategistObj);
+	//if (!AIStrategistClass)
+	//{
+	//	UE_LOG(LogTurnBasedCombat, Error, TEXT("AIStrategistClass is null"));
+	//	AIStrategistClass = UAIStrategist::StaticClass();//Default Strategist Class
+	//}
 
-	if (!TBCConfigProxy.IsNull())
-	{
-		TBCConfig = TBCConfigProxy.LoadSynchronous();
-	}
+	//AIStrategistObj = NewObject<UObject>(this, AIStrategistClass, TEXT("AIStrategist"));
+	//AIStrategist = Cast<ITurnBasedStrategist>(AIStrategistObj);
+
 }
 
-ITurnBasedStrategist* UTurnBasedCombatSubsystem::GetStrategist(UBAProfile* Profile) const
-{
-	if (Profile && StrategistsAssigned.Contains(Profile))
-	{
-		return static_cast<ITurnBasedStrategist*>(StrategistsAssigned[Profile].GetInterface());
-	}
-	return nullptr;
-}
+//ITurnBasedStrategist* UTurnBasedCombatSubsystem::GetStrategist(UFighterProfile* Profile) const
+//{
+//	if (Profile && StrategistsAssigned.Contains(Profile))
+//	{
+//		return static_cast<ITurnBasedStrategist*>(StrategistsAssigned[Profile].GetInterface());
+//	}
+//	return nullptr;
+//}
 
 AActor* UTurnBasedCombatSubsystem::GetExplorationActor(UBAProfile* Profile) const
 {
@@ -64,28 +67,28 @@ AActor* UTurnBasedCombatSubsystem::GetExplorationActor(UBAProfile* Profile) cons
 	return nullptr;
 }
 
-void UTurnBasedCombatSubsystem::AddStrategist(UBAProfile* Profile, ITurnBasedStrategist* Strategist)
-{
-	//StrategistsAssigned.Add(Profile, Strategist);
-	TScriptInterface<ITurnBasedStrategist>& Interface = StrategistsAssigned.Emplace(Profile);
-	Interface.SetInterface(Strategist);
-	Interface.SetObject(Cast<UObject>(Strategist));
-}
+//void UTurnBasedCombatSubsystem::AddStrategist(UBAProfile* Profile, ITurnBasedStrategist* Strategist)
+//{
+//	//StrategistsAssigned.Add(Profile, Strategist);
+//	TScriptInterface<ITurnBasedStrategist>& Interface = StrategistsAssigned.Emplace(Profile);
+//	Interface.SetInterface(Strategist);
+//	Interface.SetObject(Cast<UObject>(Strategist));
+//}
 
 
-void UTurnBasedCombatSubsystem::RemoveStrategist(ITurnBasedStrategist* Strategist)
-{
-	for (auto It = StrategistsAssigned.CreateConstIterator(); It; ++It)
-	{
-		auto LoopStrategist = It.Value();
-		if (Strategist == LoopStrategist.GetInterface())
-		{
-			StrategistsAssigned.Remove(It.Key());
-		}
-	}
-}
+//void UTurnBasedCombatSubsystem::RemoveStrategist(ITurnBasedStrategist* Strategist)
+//{
+//	for (auto It = StrategistsAssigned.CreateConstIterator(); It; ++It)
+//	{
+//		auto LoopStrategist = It.Value();
+//		if (Strategist == LoopStrategist.GetInterface())
+//		{
+//			StrategistsAssigned.Remove(It.Key());
+//		}
+//	}
+//}
 
-void UTurnBasedCombatSubsystem::ProfileStartFight(UBAProfile* Profile, AFight* Fight)
+void UTurnBasedCombatSubsystem::ProfileStartFight(UFighterProfile* Profile, AFight* Fight)
 {
 	//TODO: Remove default Strategist and create one when we are actually retrieving the profile
 
@@ -94,63 +97,64 @@ void UTurnBasedCombatSubsystem::ProfileStartFight(UBAProfile* Profile, AFight* F
 		ExplorationActor->Destroy();
 	}
 
-	ITurnBasedStrategist* Strategist = GetStrategist(Profile);
+	//ITurnBasedStrategist* Strategist = GetStrategist(Profile);
 
-	if (Profile->IsPlayerMainProfile())
-	{
-		if (!Strategist)//We don't have the strategist already created
-		{
-			//Checks
-			UWorld* World = Fight->GetWorld();
-			if (!World)
-			{
-				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() World is null"));
-				return;
-			}
+	//if (Profile->IsPlayerMainProfile())
+	//{
+	//	if (!Strategist)//We don't have the strategist already created
+	//	{
+	//		//Checks
+	//		UWorld* World = Fight->GetWorld();
+	//		if (!World)
+	//		{
+	//			UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() World is null"));
+	//			return;
+	//		}
 
-			APlayerController* PC = UBAMultiplayerSubsystem::GetPlayerControllerFromUser(this, Profile->BAUser);
-			if (!PC)
-			{
-				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerController is null"));
-				return;
-			}
+	//		APlayerController* PC = UBAMultiplayerSubsystem::GetPlayerControllerFromUser(this, Profile->BAUser);
+	//		if (!PC)
+	//		{
+	//			UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerController is null"));
+	//			return;
+	//		}
 
-			if (APawn* Pawn = PC->GetPawn())
-			{
-				Pawn->Destroy();// it can't be a ITurnBased Strategist, we destroy it// TODO SEE IF THIS IS ACTUALLY EVER EXECUTED
-			}
+	//		if (APawn* Pawn = PC->GetPawn())
+	//		{
+	//			Pawn->Destroy();// it can't be a ITurnBased Strategist, we destroy it// TODO SEE IF THIS IS ACTUALLY EVER EXECUTED
+	//		}
 
-			if (!PlayerCombatPawnClass)
-			{
-				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is null"));
-				return;
-			}
-			//END: Checks
+	//		if (!Config->PlayerCombatPawnClass)
+	//		{
+	//			UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is null"));
+	//			return;
+	//		}
+	//		//END: Checks
 
-			//Spawn a new Strategist
-			APawn* CombatPawn = World->SpawnActor<APawn>(PlayerCombatPawnClass, Fight->GetActorTransform());
-			PC->Possess(CombatPawn);
+	//		//Spawn a new Strategist
+	//		APawn* CombatPawn = World->SpawnActor<APawn>(Profile->PlayerCombatPawnClass, Fight->GetActorTransform());
+	//		PC->Possess(CombatPawn);
 
-			Strategist = Cast<ITurnBasedStrategist>(CombatPawn);
-			if (!Strategist)
-			{
-				UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is not a ITurnBasedStrategist"));
-				return;
-			}
-			AddStrategist(Profile, Strategist);
-		}
+	//		Strategist = Cast<ITurnBasedStrategist>(CombatPawn);
+	//		Profile->Strategist = Strategist;
+	//		if (!Strategist)
+	//		{
+	//			UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is not a ITurnBasedStrategist"));
+	//			return;
+	//		}
+	//		AddStrategist(Profile, Strategist);
+	//	}
 
-	}
-	else //it's not a profile of a User (player)
-	{
-		if (!Strategist)
-		{
-			//We add the default strategist
-			Strategist = AIStrategist;
-			AddStrategist(Profile, AIStrategist);
-		}
-	}
-	Strategist->StartFight(Fight);
+	//}
+	//else //it's not a profile of a User (player)
+	//{
+	//	if (!Strategist)
+	//	{
+	//		//We add the default strategist
+	//		Strategist = AIStrategist;
+	//		AddStrategist(Profile, AIStrategist);
+	//	}
+	//}
+	//Strategist->StartFight(Fight);
 }
 
 void UTurnBasedCombatSubsystem::StartExplorationMode(UBAProfile* Profile, UObject* MyContext, bool const bIsDead, FTransform const CurrentTransform)
@@ -164,7 +168,7 @@ void UTurnBasedCombatSubsystem::StartExplorationMode(UBAProfile* Profile, UObjec
 		return;
 	}
 
-	if (!ExplorationPawnClass)
+	if (!Config->ExplorationPawnClass)
 	{
 		UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::StartExplorationMode() No ExplorationPawnClass Assigned"));
 		return;
@@ -175,7 +179,7 @@ void UTurnBasedCombatSubsystem::StartExplorationMode(UBAProfile* Profile, UObjec
 
 	if (SpawnerActor)
 	{
-		APawn* ExplorationPawn = World->SpawnActor<APawn>(ExplorationPawnClass, SpawnerActor->GetActorTransform());
+		APawn* ExplorationPawn = World->SpawnActor<APawn>(Config->ExplorationPawnClass, SpawnerActor->GetActorTransform());
 					
 		if (Profile->IsPlayerMainProfile())
 		{
@@ -190,7 +194,7 @@ void UTurnBasedCombatSubsystem::StartExplorationMode(UBAProfile* Profile, UObjec
 		else
 		{
 			//Spawn a AI controller
-			AAIController* AIController = World->SpawnActor<AAIController>(NpcAiControllerClass, ExplorationPawn->GetActorTransform());
+			AAIController* AIController = World->SpawnActor<AAIController>(Config->NpcAiControllerClass, ExplorationPawn->GetActorTransform());
 			AIController->Possess(ExplorationPawn);
 		}
 
@@ -201,16 +205,15 @@ void UTurnBasedCombatSubsystem::StartExplorationMode(UBAProfile* Profile, UObjec
 	}
 
 
-	ITurnBasedStrategist* Strategist = GetStrategist(Profile);
-	RemoveStrategist(Strategist);
-	if (Strategist)
-	{
-		if (AActor* StrategistActor = Cast<AActor>(Strategist))
-		{
-			StrategistActor->Destroy();
-		}
-	}
-
+	//ITurnBasedStrategist* Strategist = GetStrategist(Profile);
+	//RemoveStrategist(Strategist);
+	//if (Strategist)
+	//{
+	//	if (AActor* StrategistActor = Cast<AActor>(Strategist))
+	//	{
+	//		StrategistActor->Destroy();
+	//	}
+	//}
 }
 
 ACharacterSpawner* UTurnBasedCombatSubsystem::FindSpawnerActor(UWorld* World, UBAProfile* Profile)

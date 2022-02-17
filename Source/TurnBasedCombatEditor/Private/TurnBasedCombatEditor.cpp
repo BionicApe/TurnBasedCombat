@@ -3,9 +3,11 @@
 #include "TurnBasedCombatEditor.h"
 #include "IAssetTools.h"
 #include "AssetToolsModule.h"
-#include "AssetTypeActions/TeamAssetTypeAction.h"
-#include "AssetTypeActions/ArenaSequencesTypeActions.h"
+#include "TypeActions/TeamAssetTypeAction.h"
+#include "TypeActions/ArenaSequencesTypeActions.h"
 #include "Templates/SharedPointer.h"
+#include "TypeActions/TurnBasedCombatConfigTypeActions.h"
+#include "TypeActions/AIStrategistTypeActions.h"
 
 #define LOCTEXT_NAMESPACE "FTurnBasedCombatEditorModule"
 
@@ -17,6 +19,8 @@ void FTurnBasedCombatEditorModule::StartupModule()
 	EAssetTypeCategories::Type AssetCategoryBit = AssetTools.RegisterAdvancedAssetCategory(FName(TEXT("TurnBasedCombatEditor")), LOCTEXT("TurnBasedCombatEditor", "TurnBasedCombatEditor"));
 	AssetTools.RegisterAssetTypeActions(MakeShareable(new FTeamAssetTypeAction(AssetCategoryBit)));
 	AssetTools.RegisterAssetTypeActions(MakeShareable(new FArenaSequencesTypeActions(AssetCategoryBit)));
+	AssetTools.RegisterAssetTypeActions(MakeShareable(new FTurnBasedCombatConfigTypeActions(AssetCategoryBit)));
+	AssetTools.RegisterAssetTypeActions(MakeShareable(new FAIStrategistTypeActions(AssetCategoryBit)));
 }
 
 void FTurnBasedCombatEditorModule::ShutdownModule()

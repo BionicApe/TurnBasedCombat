@@ -58,6 +58,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ActionType")
 	virtual bool Validate(FTrpgPerformActionRequest const &Request, FTrpgPerformActionResult& Result) const;
 
+	virtual bool PerformActionType(FFocusPerformAction Params) const override;
+
 	UFUNCTION(BlueprintCallable, Category = "ActionType")
 	virtual void PerformAction(FTrpgPerformActionRequest const &Request, FTrpgPerformActionResult& Result) const {}
 

@@ -9,7 +9,7 @@
 class UActionType;
 class ALevelSequenceActor;
 class UBillboardComponent;
-class UFighterComponent;
+//class UFighterComponent;
 class AFight;
 class AActionPerformer;
 class IArenaPerformer;
@@ -28,7 +28,7 @@ struct TURNBASEDCOMBAT_API FArenaPerformance
 	AActor* Receiver;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = TrpgCombat)
-	UActionType* Action;
+	const UActionType* Action;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = TrpgCombat)
 	int32 RandomNumber = 0;
@@ -106,7 +106,7 @@ public:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void StartNewFight(AFight* Fight);
-	float PerformActionSequence(UActionType* Action, AActor* Sender, AActor* Receiver);
+	float PerformActionSequence(const UActionType* Action, AActor* Sender, AActor* Receiver);
 	void SetSelectedActor(AActor* SelectedActor);
 	void RemoveSelectedActors();
 

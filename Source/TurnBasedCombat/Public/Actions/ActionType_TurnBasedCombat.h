@@ -57,7 +57,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "ActionType")
 	int32 GetActionPoints() const { return ActionPoints; } 
-	
+
+	virtual bool PerformActionType(FFocusPerformAction Params) const override;	
 
 	//UFUNCTION(BlueprintCallable, Category = "ActionType")
 	//virtual bool Validate(FTrpgPerformActionRequest const &Request, FTrpgPerformActionResult& Result) const;

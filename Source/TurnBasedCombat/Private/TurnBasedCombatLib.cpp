@@ -4,10 +4,11 @@
 #include "TurnBasedCombatLib.h"
 #include "Arena.h"
 #include "Kismet/GameplayStatics.h"
-#include "TurnBasedCombat.h"
+#include "TurnBasedCombatLog.h"
 #include "FighterProfile.h"
 #include "Components/TrpgControlComponent.h"
 #include "Interfaces/TrpgControlOwner.h"
+
 
 AArena* UTurnBasedCombatLib::FindArena(const UObject* WorldContextObject, FVector const& Location)
 {

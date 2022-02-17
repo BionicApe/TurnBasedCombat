@@ -1,10 +1,8 @@
 // Created by Bionic Ape. All Rights Reserved.
 
 #include "TurnBasedCombat.h"
+#include "TurnBasedCombatLog.h"
 
-#define LOCTEXT_NAMESPACE "FTurnBasedCombatModule"
-
-DEFINE_LOG_CATEGORY(LogTurnBasedCombat);
 
 void FTurnBasedCombatModule::StartupModule()
 {
@@ -17,6 +15,4 @@ void FTurnBasedCombatModule::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-#undef LOCTEXT_NAMESPACE
-	
 IMPLEMENT_MODULE(FTurnBasedCombatModule, TurnBasedCombat)

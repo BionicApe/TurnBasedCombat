@@ -17,6 +17,15 @@ void UAIStrategist::StartFight(AFight* NewFight)
 
 void UAIStrategist::StartTurn(UBAProfile* MyProfile, ACombatant* MyCombatant)
 {
+
+	//Quick fix for UAIStrategist as assets instead of objects created at runtime
+	UWorld* World = MyCombatant->GetWorld();
+	if (!World)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UAIStrategist::StartTurn WORLD IS NULL"));
+		return;
+	}
+
 	FTimerDelegate TimerCallback;
 	TimerCallback.BindLambda([this, MyProfile, MyCombatant]
 		{
@@ -52,10 +61,11 @@ void UAIStrategist::StartTurn(UBAProfile* MyProfile, ACombatant* MyCombatant)
 			}
 		});
 
+
 	FTimerHandle Handle;
-	GetWorld()->GetTimerManager().SetTimer(Handle, TimerCallback, 4.f, false);
+	World->GetTimerManager().SetTimer(Handle, TimerCallback, 4.f, false);
 	FTimerHandle Handle2;
-	GetWorld()->GetTimerManager().SetTimer(Handle2, TimerCallback, 10.f, false);
+	World->GetTimerManager().SetTimer(Handle2, TimerCallback, 10.f, false);
 
 }
 

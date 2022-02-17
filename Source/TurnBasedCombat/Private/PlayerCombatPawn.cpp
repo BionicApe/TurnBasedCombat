@@ -26,7 +26,7 @@
 #include "Inventory/InventoryItem.h"
 #include "FighterProfile.h"
 #include "Components/InventoryComponent.h"
-#include "TurnBasedCombat.h"
+#include "TurnBasedCombatLog.h"
 #include "Inventory/InventorySlot.h"
 #include "Inventory/Inventory.h"
 
@@ -176,19 +176,22 @@ void APlayerCombatPawn::ZoomIn(float Rate)
 
 void APlayerCombatPawn::TrpgMouse1()
 {
-		FFocusPerformAction FocusPerformAction;
-	if (FocusTracer->GetPerformActionWithIndex(0, FocusPerformAction))
-	{
-		//Server call
+	FFocusPerformAction FocusPerformAction;
 
-		Server_PerformAction(FocusPerformAction);
-		/*FocusPerformAction.ActionType->PerformActionType(FocusPerformAction);
-		FTrpgPerformActionRequest Request;
-		Request.Action = FocusPerformAction.ActionType;
-		Request.Sender = Warrior;
-		Request.Receiver = GetFocusedWarrior();
-		Warrior->Fight->PerformAction(Request);*/
-	}
+	FocusTracer->PerformAction(0);
+
+	//if (FocusTracer->GetPerformActionWithIndex(0, FocusPerformAction))
+	//{
+	//	//Server call
+
+	//	Server_PerformAction(FocusPerformAction);
+	//	/*FocusPerformAction.ActionType->PerformActionType(FocusPerformAction);
+	//	FTrpgPerformActionRequest Request;
+	//	Request.Action = FocusPerformAction.ActionType;
+	//	Request.Sender = Warrior;
+	//	Request.Receiver = GetFocusedWarrior();
+	//	Warrior->Fight->PerformAction(Request);*/
+	//}
 }
 
 void APlayerCombatPawn::TrpgMouse2()
@@ -202,18 +205,6 @@ void APlayerCombatPawn::TrpgMouse2()
 #pragma endregion
 
 #pragma region FocusTracer
-UFighterComponent* APlayerCombatPawn::GetFocusedFighterComponent() const
-{
-	if (AActor const* const FocusedActor = FocusTracer->GetFocusedActor())
-	{
-		if (UFighterComponent* FocusedFighterComponent = Cast<UFighterComponent>(FocusedActor->GetComponentByClass(UFighterComponent::StaticClass())))
-		{
-			return FocusedFighterComponent;
-		}
-	}
-	return nullptr;
-}
-
 
 void APlayerCombatPawn::OnNewFocus(const FFocusTraceInfo& Info)
 {
@@ -224,14 +215,9 @@ void APlayerCombatPawn::OnNewFocus(const FFocusTraceInfo& Info)
 
 		if (AActor* CurrentFocusedActor = FocusTracer->GetFocusedActor())
 		{
-			if (UFighterComponent* FocusedWarrior = GetFocusedFighterComponent())
+			if (Fight->Arena)
 			{
-				//Warrior->AICombatController->SetFocus(CurrentFocusedActor);
-
-				if (Fight->Arena)
-				{
-					Fight->Arena->SetSelectedActor(CurrentFocusedActor);
-				}
+				Fight->Arena->SetSelectedActor(CurrentFocusedActor);
 			}
 		}
 	}
@@ -242,73 +228,25 @@ void APlayerCombatPawn::OnEndFocus(const UFocusableComponent* Focusable)
 	if (APlayerController* PC = GetPlayerController())
 	{
 		PC->CurrentMouseCursor = EMouseCursor::Default;
-
-		if (UFighterComponent* FocusedWarrior = GetFocusedFighterComponent())
+		if (Fight->Arena)
 		{
-			if (Fight->Arena)
-			{
-				Fight->Arena->RemoveSelectedActors();
-			}
+			Fight->Arena->RemoveSelectedActors();
 		}
 	}
 }
 
 void APlayerCombatPawn::OnNewActionsSets()
 {
-	//if (AThePrisonHUD* MyThePrisonHUD = Cast<AThePrisonHUD>(GetHUD()))
-	//{
-	//	MyThePrisonHUD->OnNewActionsSets(FocusTracer);
-	//}
+	
 }
 
-
-void APlayerCombatPawn::Server_PerformAction_Implementation(FFocusPerformAction PerformAction)
-{
-	UE_LOG(LogTurnBasedCombat, Log, TEXT("Server_PerformAction_Implementation Received: %s"), *PerformAction.ToString());
-
-	//All of this can go into _Validate()
-	if (!Combatant)
-	{
-		UE_LOG(LogTurnBasedCombat, Log, TEXT("Server_PerformAction_Implementation has no Combatant"));
-		return;
-	}
-
-	if (!Fight)
-	{
-		UE_LOG(LogTurnBasedCombat, Log, TEXT("Server_PerformAction_Implementation has no Fight"));
-		return;
-	}
-
-	ACombatant* Receiver = Cast<ACombatant>(PerformAction.FocusedActor);
-	if (!Receiver)
-	{
-		UE_LOG(LogTurnBasedCombat, Log, TEXT("Server_PerformAction_Implementation has no Combatant focused"));
-		return;
-	}
-
-	bool const bIsActionPerformed = Fight->PerformAction(PerformAction.ActionType, this, Combatant, Receiver);
-	UE_LOG(LogTurnBasedCombat, Log, TEXT("Server_PerformAction_Implementation Fight->PerformAction returned %s"), bIsActionPerformed ? TEXT("True") : TEXT("False"));
-}
-
-bool APlayerCombatPawn::Server_PerformAction_Validate(FFocusPerformAction PerformAction)
-{
-	//PerformAction.ActionsSet; //check if the actions set belongs to the 
-	//PerformAction.ActionType;
-	//PerformAction.ActionableType;
-	//PerformAction.Focusable;
-	//PerformAction.ActionPawn;
-	//PerformAction.ActionController;
-	//PerformAction.Distance;
-	//PerformAction.FocusedActor;
-	return true;
-}
 #pragma endregion
 
 
 void APlayerCombatPawn::StartFight(AFight* NewFight)
 {
 	Fight = NewFight;
-	SetActorTransform(Fight->Arena->GetOrbitCameraTransform());	
+	SetActorTransform(Fight->Arena->GetOrbitCameraTransform());
 }
 
 void APlayerCombatPawn::OnRep_Fight()

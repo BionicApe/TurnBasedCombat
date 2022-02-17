@@ -6,8 +6,8 @@
 #include "UObject/NoExportTypes.h"
 #include "Team.generated.h"
 
-class UFighterComponent;
-class UBAProfile;
+//class UFighterComponent;
+class UFighterProfile;
 class ITurnBasedStrategist;
 
 /**
@@ -21,7 +21,7 @@ class TURNBASEDCOMBAT_API UTeam : public UObject
 public:
 
 	UPROPERTY(Category = TurnBasedCombat, EditDefaultsOnly, BlueprintReadOnly, Replicated)
-	TArray<UBAProfile*> Profiles;
+	TArray<UFighterProfile*> Profiles;
 
 public:
 

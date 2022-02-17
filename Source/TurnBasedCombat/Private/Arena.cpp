@@ -109,7 +109,7 @@ void AArena::StartNewFight(AFight* NewFight)
 }
 
 
-float AArena::PerformActionSequence(UActionType* Action, AActor* Sender, AActor* Receiver)
+float AArena::PerformActionSequence(const UActionType* Action, AActor* Sender, AActor* Receiver)
 {
 	ArenaPerformance.Action = Action;
 	ArenaPerformance.Sender = Sender;

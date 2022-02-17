@@ -88,7 +88,7 @@ struct TURNBASEDCOMBAT_API FTrpgPerformActionRequest
 	AActor* Receiver;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = TrpgCombat)
-	UActionType_Trpg* Action;
+	const UActionType_Trpg* Action;
 
 	FTrpgPerformActionRequest() : Sender(nullptr), Receiver(nullptr), Action(nullptr)
 	{

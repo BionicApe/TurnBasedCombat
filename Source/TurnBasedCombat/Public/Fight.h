@@ -14,6 +14,8 @@ class UTeam;
 class AArena;
 class ITurnBasedStrategist;
 class UActionType_Trpg;
+class APawn;
+class APlayerCombatPawn;
 
 
 USTRUCT(BlueprintType)
@@ -24,13 +26,13 @@ struct TURNBASEDCOMBAT_API FFightTurn
 	//Future Turn Modifiers here
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = TRPG)
-	UBAProfile* Profile;
+	UFighterProfile* Profile;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = TRPG)
 	ACombatant* Combatant;
 
-	//TODO: See if we will have a problem for not having a UPROPERTY with the Garbage collector
-	ITurnBasedStrategist* Strategist;
+	////TODO: See if we will have a problem for not having a UPROPERTY with the Garbage collector
+	//ITurnBasedStrategist* Strategist;
 
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = TRPG)
 	//UActionType_Trpg* LastActionPerformed;
@@ -43,10 +45,20 @@ struct TURNBASEDCOMBAT_API FFightTurn
 
 
 
-UCLASS(Config = BionicApe)
+UCLASS(/*Config = BionicApe*/)
 class TURNBASEDCOMBAT_API AFight : public AActor
 {
 	GENERATED_BODY()
+
+protected:
+
+	//WARNING: I Suspect I am having "Blueprint could not be loaded because it derives from an invalid class" because I was using "Config" here in the header, and this class is from a module that depends on this module
+	//WARNING 2: Changed it so it's blueprint based instead of Config
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly/*, Config*/)
+	TSubclassOf<ACombatant> CombatantClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly/*, Config*/)
+	TSubclassOf<APlayerCombatPawn> PlayerCombatPawnClass;
 
 public:
 
@@ -58,15 +70,6 @@ public:
 
 	UPROPERTY(Replicated, Category = TurnBasedCombat, EditAnywhere, BlueprintReadWrite)
 	AArena* Arena;
-
-	//WARNING: I Suspect I am having "Blueprint could not be loaded because it derives from an invalid class" because I was using "Config" here in the header, and this class is from a module that depends on this module
-	//WARNING 2: I moved this to CombatantClassProxy
-	UPROPERTY(EditAnywhere/*, Config*/)
-	TSubclassOf<ACombatant> CombatantClass;
-
-	//WARNING: See warning on CombatantClass, let's try with SoftClassPtr just in case loading the asset causes to make it "derives from an invalid class"!
-	UPROPERTY(Config)
-	TSoftClassPtr<ACombatant> CombatantClassProxy;
 
 	UPROPERTY(Category = TurnBasedCombat, VisibleAnywhere, Transient, Replicated)
 	TArray<FFightTurn> Turns;
@@ -119,7 +122,7 @@ public:
 
 	void SetTurnState(ETurnState NewTurnState);
 
-	bool PerformAction(UActionType* Action, ITurnBasedStrategist* Strategist, ACombatant* Sender, ACombatant* Receiver);
+	bool PerformAction(const UActionType* Action, ITurnBasedStrategist* Strategist, ACombatant* Sender, ACombatant* Receiver);
 
 	void CommitAction(FTrpgPerformActionRequest Request);
 

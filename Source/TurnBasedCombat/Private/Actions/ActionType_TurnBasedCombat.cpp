@@ -8,6 +8,8 @@
 #include "Combatant.h"
 #include "Fight.h"
 #include "FighterProfile.h"
+#include "TurnBasedCombatLog.h"
+
 
 #define LOCTEXT_NAMESPACE "UActionType_TurnBasedCombatAttack"
 
@@ -39,6 +41,56 @@ bool UActionType_TurnBasedCombat::CanExecuteAction(AActor* ActionActor, AActor* 
 		}
 	}
 	return false;
+}
+
+bool UActionType_TurnBasedCombat::PerformActionType(FFocusPerformAction Params) const
+{
+
+#pragma region Validations
+
+	ITurnBasedStrategist* Strategist = Cast<ITurnBasedStrategist>(Params.ActionPawn);
+	if (!Strategist)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType Strategist is null!"));
+		return false;
+	}
+
+	ACombatant* Receiver = Cast<ACombatant>(Params.FocusedActor);
+	if (!Receiver)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType FocusedCombatant is null!"));
+		return false;
+	}
+
+	AFight* Fight = Receiver->Fight;
+	if (!Fight)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType Fight is null!"));
+		return false;
+	}
+
+	const FFightTurn* CurrentTurn = Fight->GetCurrentFightTurn();
+	if (!CurrentTurn)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType CurrentTurn is null!"));
+		return false;
+	}
+
+	if (CurrentTurn->Profile->Strategist != Strategist)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType CurrentTurn->Profile->Strategist != Strategist!"));
+		return false;
+	}
+
+	ACombatant* Sender = CurrentTurn->Combatant;
+	if (Sender)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType Sender is null!"));
+		return false;
+	}
+
+
+	return Fight->PerformAction(this, Strategist, Sender, Receiver);
 }
 
 #undef LOCTEXT_NAMESPACE

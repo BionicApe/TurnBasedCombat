@@ -6,44 +6,29 @@
 #include "UObject/NoExportTypes.h"
 #include "TurnBasedCombatConfig.generated.h"
 
-class AAIController;
 class APawn;
+class AAIController;
 
 /**
- *
+ * 
  */
 UCLASS()
 class TURNBASEDCOMBAT_API UTurnBasedCombatConfig : public UObject
 {
 	GENERATED_BODY()
 
-protected:
-
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<UObject> AIStrategistClass;
-
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<APawn> PlayerCombatPawnClass;
-
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<APawn> ExplorationPawnClass;
-
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<AAIController> NpcAiControllerClass;
-
 public:
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<UObject> AIStrategistClass;
 
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<UObject> GetAIStrategistClass() const { return AIStrategistClass; }
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly	)
+	TSubclassOf<APawn> PlayerStrategistClass;
 
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<APawn> GetPlayerCombatPawnClass() const { return PlayerCombatPawnClass; }
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<APawn> ExplorationPawnClass;
 
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<APawn> GetExplorationPawnClass() const { return ExplorationPawnClass; }
-
-	UPROPERTY(EditDefaultsOnly, VisibleAnywhere)
-	TSubclassOf<AAIController> GetNpcAiControllerClass() const { return NpcAiControllerClass; }
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TSubclassOf<AAIController> NpcAiControllerClass;
 
 };

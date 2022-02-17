@@ -20,7 +20,6 @@ class ACombatant;
 class APlayerController;
 class AFight;
 class IStrategistHUD;
-class UFighterComponent;
 class UFighterProfile;
 
 
@@ -155,15 +154,12 @@ public:
 	UPROPERTY(Category = TrpgCombat, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UFocusTracerCursorComponent* FocusTracer;
 
-	UFighterComponent* GetFocusedFighterComponent() const;
 	UFUNCTION()
 	void OnNewFocus(const FFocusTraceInfo& Info);
 	UFUNCTION()
 	void OnEndFocus(const UFocusableComponent* Focusable);
 	UFUNCTION()
 	void OnNewActionsSets();
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_PerformAction(FFocusPerformAction PerformAction);
 #pragma endregion
 
 #pragma region ITurnBasedStrategist

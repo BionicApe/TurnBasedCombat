@@ -11,6 +11,7 @@
 class UInventory;
 class UInventoryItem;
 class UTeam;
+class ITurnBasedStrategist;
 
 UENUM(BlueprintType)
 enum class EFelonyType : uint8
@@ -181,6 +182,16 @@ public:
 
 	UFUNCTION()
 	void OnRep_Attributes();
+#pragma endregion
+
+#pragma region Strategist
+	
+	//UPROPERTY(EditDefaultsOnly, meta = (AllowedClasses = "TurnBasedStrategist"))
+	//UObject* Strategist;
+	
+	UPROPERTY(EditDefaultsOnly, meta = (AllowedClasses = "TurnBasedStrategist"))
+	TScriptInterface<ITurnBasedStrategist> Strategist;
+
 #pragma endregion
 
 public:

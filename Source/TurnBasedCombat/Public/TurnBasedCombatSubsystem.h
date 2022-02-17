@@ -13,6 +13,7 @@ class AFight;
 class UBAProfile;
 class ACharacterSpawner;
 class AAIController;
+class UFighterProfile;
 class UTurnBasedCombatConfig;
 
 /**
@@ -25,25 +26,13 @@ class TURNBASEDCOMBAT_API UTurnBasedCombatSubsystem : public UGameInstanceSubsys
 
 public:
 
-
-	UPROPERTY(Transient)
-	UTurnBasedCombatConfig* TBCConfig;
-
-	UPROPERTY(Config)
-	TSoftObjectPtr<UTurnBasedCombatConfig> TBCConfigProxy;
-
-	/**
-	 * Used to avoid being garbage collected
-	 */
-	UPROPERTY(Transient)
-	UObject* AIStrategistObj;
-	ITurnBasedStrategist* AIStrategist;
-		
-	UPROPERTY(Transient)
-	TMap<UBAProfile*, TScriptInterface<ITurnBasedStrategist>> StrategistsAssigned;//Check IsValid(Pointer))
-
 	UPROPERTY(Transient)
 	TMap<UBAProfile*, AActor*> ExplorationActors;
+
+	UPROPERTY(Transient, VisibleAnywhere)//TODO: If we find a better way to do this without using proxy then it won't be transient anymore
+	UTurnBasedCombatConfig* Config; 
+	UPROPERTY(Config)
+	TSoftObjectPtr<UTurnBasedCombatConfig> ConfigProxy;
 
 	
 public:
@@ -52,15 +41,9 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	ITurnBasedStrategist* GetStrategist(UBAProfile* Profile) const;
-
 	AActor* GetExplorationActor(UBAProfile* Profile) const;
 
-	void AddStrategist(UBAProfile* Profile, ITurnBasedStrategist* Strategist);
-
-	void RemoveStrategist(ITurnBasedStrategist* Strategist);
-
-	void ProfileStartFight(UBAProfile* Profile, AFight* Fight);
+	void ProfileStartFight(UFighterProfile* Profile, AFight* Fight);
 	
 	void StartExplorationMode(UBAProfile* Profile, UObject* MyContext, bool const bIsDead, FTransform const CurrentTransform);
 

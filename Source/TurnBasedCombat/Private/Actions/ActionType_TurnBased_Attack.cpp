@@ -46,23 +46,23 @@ UActionType_TurnBased_Attack::UActionType_TurnBased_Attack() : Super()
 
 void UActionType_TurnBased_Attack::PerformAction(FTrpgPerformActionRequest const& Request, FTrpgPerformActionResult& Result) const
 {
-	//if (Validate(Request, Result))
-	//{
-	//	FDamageEvent Event;
-	//	//Request.Receiver->HealthComp->TakeDamageNoInstigator(GetDamage(), Event, Request.Sender->WarriorPawn);//TODO: Maybe change this to use just the actor not the HealthComponent
-	//	Request.Receiver->TakeDamage(GetDamage(), Event, Request.Sender->GetInstigator(), Request.Sender);
-
-	//	Result.Log.Messages.Add(
-	//		FText::Format(
-	//			LOCTEXT("TrpgCombatPerformAction", "{0} attacks {1}  with a strenght of {2} leaving a health"),
-	//			//FText::FromString(Request.Sender->GetWarriorName()),
-	//			//FText::FromString(Request.Receiver->GetWarriorName()),
-	//			FText::FromString(Request.Sender->GetName()),
-	//			FText::FromString(Request.Receiver->GetName()),
-	//			FText::FromString(FString::SanitizeFloat(GetDamage(), 0))
-	//		)
-	//	);
-	//}
+//	if (Validate(Request, Result))
+//	{
+//		FDamageEvent Event;
+//		Request.Receiver->HealthComp->TakeDamageNoInstigator(GetDamage(), Event, Request.Sender->WarriorPawn);//TODO: Maybe change this to use just the actor not the HealthComponent
+//		Request.Receiver->TakeDamage(GetDamage(), Event, Request.Sender->GetInstigator(), Request.Sender);
+//
+//		Result.Log.Messages.Add(
+//			FText::Format(
+//				LOCTEXT("TrpgCombatPerformAction", "{0} attacks {1}  with a strenght of {2} leaving a health"),
+//				FText::FromString(Request.Sender->GetWarriorName()),
+//				FText::FromString(Request.Receiver->GetWarriorName()),
+//				FText::FromString(Request.Sender->GetName()),
+//				FText::FromString(Request.Receiver->GetName()),
+//				FText::FromString(FString::SanitizeFloat(GetDamage(), 0))
+//			)
+//		);
+//	}
 }
 
 #undef LOCTEXT_NAMESPACE

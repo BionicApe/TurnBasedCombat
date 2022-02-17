@@ -6,6 +6,9 @@
 #include "Interfaces/TurnBasedStrategist.h"
 #include "BAProfile.h"
 #include "Combatant.h"
+#include "FocusInteractionsTypes.h"
+#include "Fight.h"
+#include "TurnBasedCombatLog.h"
 
 #define LOCTEXT_NAMESPACE "UActionType_TrpgAttack"
 
@@ -49,6 +52,60 @@ bool UActionType_Trpg::Validate(FTrpgPerformActionRequest const& Request, FTrpgP
 	}
 
 	return Result.bIsSuccessful;
+}
+
+bool UActionType_Trpg::PerformActionType(FFocusPerformAction Params) const
+{
+	/////////////////////////////////////////////////////////////////////////////
+	// EXTRACTED FROM FIGHT.H
+	/////////////////////////////////////////////////////////////////////////////
+	//VALIDATIONS! TODO: MAYBE IT'S GOOD TO CHANGE THE FLOW
+
+#pragma region Validations
+
+	ITurnBasedStrategist* Strategist = Cast<ITurnBasedStrategist>(Params.ActionPawn);
+	if (!Strategist)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType Strategist is null!"));
+		return false;
+	}
+
+	ACombatant* Receiver = Cast<ACombatant>(Params.FocusedActor);
+	if (!Receiver)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType FocusedCombatant is null!"));
+		return false;
+	}
+
+	AFight* Fight = Receiver->Fight;
+	if (!Fight)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType Fight is null!"));
+		return false;
+	}
+
+	const FFightTurn* CurrentTurn = Fight->GetCurrentFightTurn();
+	if (!CurrentTurn)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType CurrentTurn is null!"));
+		return false;
+	}
+
+	if (CurrentTurn->Profile->Strategist != Strategist)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType CurrentTurn->Profile->Strategist != Strategist!"));
+		return false;
+	}
+
+	ACombatant* Sender = CurrentTurn->Combatant;
+	if (!Sender)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("UActionType_Trpg::PerformActionType Sender is null!"));
+		return false;
+	}
+
+
+	return Fight->PerformAction(this, Strategist, Sender, Receiver);
 }
 
 bool UActionType_Trpg::CanExecuteAction(AActor* ActionActor, AActor* ActionableActor) const

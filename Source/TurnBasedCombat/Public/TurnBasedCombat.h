@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogTurnBasedCombat, Log, All);
-
 class FTurnBasedCombatModule : public IModuleInterface
 {
 public:

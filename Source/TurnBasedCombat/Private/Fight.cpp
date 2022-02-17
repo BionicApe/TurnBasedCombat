@@ -2,7 +2,7 @@
 
 
 #include "Fight.h"
-#include "TurnBasedCombat.h"
+#include "TurnBasedCombatLog.h"
 #include "Net/UnrealNetwork.h"
 #include "Fighter.h"
 #include "Components/FighterComponent.h"
@@ -16,6 +16,11 @@
 #include "TrpgCombatTypes.h"
 #include "BAProfile.h"
 #include "Containers/Map.h"
+#include <BAMultiplayerSubsystem.h>
+#include <FighterProfile.h>
+#include <Engine/World.h>
+
+#include "TurnBasedCombatLog.h"
 
 
 // Sets default values
@@ -61,18 +66,6 @@ void AFight::StartFight()
 {
 	Combatants.Empty();
 
-	if (!Arena)
-	{
-		UE_LOG(LogTurnBasedCombat, Error, TEXT("AFight::StartFight(): Arena is null"));
-		return;
-	}
-
-	if (Teams.Num() < 2)
-	{
-		UE_LOG(LogTurnBasedCombat, Error, TEXT("AFight::StartFight(): Not enough Teams (Teams = %i)"), Teams.Num());
-		return;
-	}
-
 	UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -80,9 +73,21 @@ void AFight::StartFight()
 		return;
 	}
 
+	if (!Arena)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("AFight::StartFight(): Arena is null"));
+		return;
+	}
+
 	if (!CombatantClass)
 	{
 		UE_LOG(LogTurnBasedCombat, Error, TEXT("AFight::StartFight(): CombatantClass is null"));
+		return;
+	}
+
+	if (Teams.Num() < 2)
+	{
+		UE_LOG(LogTurnBasedCombat, Error, TEXT("AFight::StartFight(): Not enough Teams (Teams = %i)"), Teams.Num());
 		return;
 	}
 
@@ -99,7 +104,7 @@ void AFight::StartFight()
 	{
 		CombatantIndex = 0;
 
-		for (UBAProfile* Profile : Team->Profiles)
+		for (UFighterProfile* Profile : Team->Profiles)
 		{
 			//Spawn A new Combatant
 			ACombatant* Combatant = GetWorld()->SpawnActor<ACombatant>(CombatantClass, Arena->GetPawnTransform(TeamIndex, CombatantIndex));
@@ -107,13 +112,67 @@ void AFight::StartFight()
 			Combatants.Add(Profile, Combatant);
 			Combatant->Fight = this;
 
-			TurnBasedCombatSubsystem->ProfileStartFight(Profile, this);
+			//TurnBasedCombatSubsystem->ProfileStartFight(Profile, this);
+			//EXTRACTED FROM TurnBasedCombatSubsystem->ProfileStartFight
+
+			if (AActor* ExplorationActor = TurnBasedCombatSubsystem->GetExplorationActor(Profile))
+			{
+				ExplorationActor->Destroy();
+			}
+
+			if (Profile->IsPlayerMainProfile())
+			{
+				if (!Profile->Strategist)//We don't have the strategist already created
+				{
+
+					APlayerController* PC = UBAMultiplayerSubsystem::GetPlayerControllerFromUser(this, Profile->BAUser);
+					if (!PC)
+					{
+						UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerController is null"));
+						return;
+					}
+
+					if (APawn* Pawn = PC->GetPawn())
+					{
+						Pawn->Destroy();// it can't be a ITurnBased Strategist, we destroy it// TODO SEE IF THIS IS ACTUALLY EVER EXECUTED
+					}
+
+					if (!PlayerCombatPawnClass)
+					{
+						UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is null"));
+						return;
+					}
+					//END: Checks
+
+					//Spawn a new Strategist
+					APawn* CombatPawn = World->SpawnActor<APawn>(PlayerCombatPawnClass, GetActorTransform());
+					PC->Possess(CombatPawn);
+
+					Profile->Strategist = CombatPawn;
+
+					if (!Profile->Strategist)
+					{
+						UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is not a ITurnBasedStrategist"));
+						return;
+					}
+				}
+			}
+
+			if (Profile->Strategist)
+			{
+				Profile->Strategist->StartFight(this);
+			}
+			else {
+				UE_LOG(LogTemp, Error, TEXT("Profile doesn't have an strategist assigned! %s"), *Profile->GetName());
+			}
+
+			//END EXTRACTED FROM TurnBasedCombatSubsystem->ProfileStartFight
 
 			int32 const NewTurnIndex = Turns.Emplace();
 			FFightTurn& Turn = Turns[NewTurnIndex];
 			Turn.Combatant = Combatant;
 			Turn.Profile = Profile;
-			Turn.Strategist = TurnBasedCombatSubsystem->GetStrategist(Profile);
+			//Turn.Profile->Strategist = TurnBasedCombatSubsystem->GetStrategist(Profile);
 			CombatantIndex++;
 		}
 
@@ -133,18 +192,18 @@ void AFight::TestDelayNotifyTurn()
 {
 	FFightTurn& CurrentTurn = Turns[TurnIndex];
 
-	if (CurrentTurn.Strategist)
+	if (CurrentTurn.Profile->Strategist)
 	{
-		CurrentTurn.Strategist->EndTurn();
+		CurrentTurn.Profile->Strategist->EndTurn();
 	}
 
 
 	TurnIndex = (TurnIndex + 1) % Turns.Num();
 	FFightTurn& NewTurn = Turns[TurnIndex];
 
-	if (NewTurn.Strategist)
+	if (NewTurn.Profile->Strategist)
 	{
-		NewTurn.Strategist->StartTurn(NewTurn.Profile, NewTurn.Combatant);
+		NewTurn.Profile->Strategist->StartTurn(NewTurn.Profile, NewTurn.Combatant);
 	}
 
 	//if (GetWorld())
@@ -169,9 +228,9 @@ void AFight::NotifyNextTurn()
 	{
 		NewTurn.Combatant->StartTurnUpdateValues();
 	}
-	if (NewTurn.Strategist)
+	if (NewTurn.Profile->Strategist)
 	{
-		NewTurn.Strategist->StartTurn(NewTurn.Profile, NewTurn.Combatant);
+		NewTurn.Profile->Strategist->StartTurn(NewTurn.Profile, NewTurn.Combatant);
 	}
 }
 
@@ -190,6 +249,12 @@ bool AFight::AreEnemies(UBAProfile* ProfileA, UBAProfile* ProfileB) const
 
 	for (UTeam* Team : Teams)
 	{
+		//TODO: find a way to replicate Teams!! it is nullptr in clients!!
+		if (!Team)
+		{
+			continue;//TODO: all teams that are created in the server are nullptr in the clients!
+		}
+
 		if (Team->Profiles.Contains(ProfileA) && Team->Profiles.Contains(ProfileB))
 		{
 			return false;//They share the same team
@@ -203,7 +268,7 @@ void AFight::SetTurnState(ETurnState NewTurnState)
 	TurnState = NewTurnState;
 }
 
-bool AFight::PerformAction(UActionType* Action, ITurnBasedStrategist* Strategist, ACombatant* Sender, ACombatant* Receiver)
+bool AFight::PerformAction(const UActionType* Action, ITurnBasedStrategist* Strategist, ACombatant* Sender, ACombatant* Receiver)
 {
 	//VALIDATIONS! TODO: MAYBE IT'S GOOD TO CHANGE THE FLOW
 #pragma region Validations
@@ -258,11 +323,11 @@ bool AFight::PerformAction(UActionType* Action, ITurnBasedStrategist* Strategist
 		return false;
 	}
 
-	if (Strategist != TurnBasedCombatSubsystem->GetStrategist(Turns[TurnIndex].Profile))
-	{
-		UE_LOG(LogTurnBasedCombat, Error, TEXT("The Strategists aren't the same"));
-		return false;
-	}
+	//if (Strategist != TurnBasedCombatSubsystem->GetStrategist(Turns[TurnIndex].Profile))
+	//{
+	//	UE_LOG(LogTurnBasedCombat, Error, TEXT("The Strategists aren't the same"));
+	//	return false;
+	//}
 
 	//END VALIDATIONS, we only need to do the Action validations themselves
 
@@ -270,7 +335,7 @@ bool AFight::PerformAction(UActionType* Action, ITurnBasedStrategist* Strategist
 
 
 
-	if (UActionType_Trpg* TrpgAction = Cast<UActionType_Trpg>(Action))
+	if (const UActionType_Trpg* TrpgAction = Cast<UActionType_Trpg>(Action))
 	{
 		FTrpgPerformActionRequest Request;
 		Request.Action = TrpgAction;
@@ -296,7 +361,7 @@ bool AFight::PerformAction(UActionType* Action, ITurnBasedStrategist* Strategist
 		if (SequenceDuration > 0.f)
 		{
 			FTimerDelegate TimerCallback;
-			TimerCallback.BindLambda([this, Request]
+			TimerCallback.BindWeakLambda(this, [this, Request]
 				{
 					CommitAction(Request);
 				});
@@ -317,9 +382,9 @@ void AFight::CommitAction(FTrpgPerformActionRequest Request)
 {
 	FTrpgPerformActionResult Result;
 
-	if (UActionType_Trpg* Action = Cast<UActionType_Trpg>(Request.Action))
+	if (const UActionType_Trpg* Action = Cast<UActionType_Trpg>(Request.Action))
 	{
-		if (ACombatant* SenderCombatant = Cast < ACombatant>(Request.Sender))
+		if (ACombatant* SenderCombatant = Cast <ACombatant>(Request.Sender))
 		{
 			Action->PerformAction(Request, Result);
 			PayAction(Action, SenderCombatant);
@@ -330,19 +395,19 @@ void AFight::CommitAction(FTrpgPerformActionRequest Request)
 	{
 		for (UTeam* Team : Teams)
 		{
-			for (UBAProfile* Profile : Team->Profiles)
+			for (UFighterProfile* Profile : Team->Profiles)
 			{
 				if (UTurnBasedCombatSubsystem* TurnBasedCombatSubsystem = GetGameInstance()->GetSubsystem<UTurnBasedCombatSubsystem>())
 				{
-					if (ITurnBasedStrategist* Strategist = TurnBasedCombatSubsystem->GetStrategist(Profile))
-					{
-						if (Strategist)
-						{
-							Strategist->NotifyFightFinish(this);
+					//if (ITurnBasedStrategist* Strategist = TurnBasedCombatSubsystem->GetStrategist(Profile))
+					//{
+					//	if (Strategist)
+					//	{
+					//		Strategist->NotifyFightFinish(this);
 
 
-						}
-					}
+					//	}
+					//}
 				}
 			}
 		}
@@ -379,14 +444,14 @@ void AFight::FinishTurn(ITurnBasedStrategist* Strategist, ACombatant* Combatant)
 		UE_LOG(LogTurnBasedCombat, Error, TEXT("AFight::FinishTurn(): Combatant is not correct"));
 		return;
 	}
-	if (CurrentTurn.Strategist != Strategist)
+	if (CurrentTurn.Profile->Strategist != Strategist)
 	{
 		UE_LOG(LogTurnBasedCombat, Error, TEXT("AFight::FinishTurn(): Strategist is not correct"));
 		return;
 	}
 
 	CurrentTurn.Combatant->EndTurnUpdateValues();
-	CurrentTurn.Strategist->EndTurn();
+	CurrentTurn.Profile->Strategist->EndTurn();
 	NotifyNextTurn();
 }
 
