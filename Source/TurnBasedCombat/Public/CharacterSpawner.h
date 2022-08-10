@@ -16,7 +16,7 @@ class TURNBASEDCOMBAT_API ACharacterSpawner : public AActor
 public:
 
 	UPROPERTY(EditAnywhere)
-	int32 ProfileId;
+	FString ProfileId;
 
 	UPROPERTY(Category = Character, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* RootSceneComp;

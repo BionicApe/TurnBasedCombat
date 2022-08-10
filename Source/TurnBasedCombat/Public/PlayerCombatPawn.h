@@ -77,10 +77,6 @@ protected:
 
 public:
 	
-	virtual void Restart() override;
-
-	virtual void Tick(float DeltaSeconds) override;
-
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	APlayerController* GetPlayerController() const;	

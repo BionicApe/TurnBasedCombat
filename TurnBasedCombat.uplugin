@@ -25,7 +25,8 @@
         "DamageSystem",
         "BAMultiplayer",
         "Engine",
-        "CoreUObject"
+        "CoreUObject",
+        "BARPG"
       ]
     },
     {
@@ -33,7 +34,7 @@
       "Type": "Editor",
       "LoadingPhase": "Default",
       "AdditionalDependencies": [
-         "TurnBasedCombat"
+        "TurnBasedCombat"
       ]
     }
   ],
@@ -52,6 +53,10 @@
     },
     {
       "Name": "DamageSystem",
+      "Enabled": true
+    },
+    {
+      "Name": "BARPG",
       "Enabled": true
     }
   ]

@@ -27,7 +27,7 @@ void UAIStrategist::StartTurn(UBAProfile* MyProfile, ACombatant* MyCombatant)
 	}
 
 	FTimerDelegate TimerCallback;
-	TimerCallback.BindLambda([this, MyProfile, MyCombatant]
+	TimerCallback.BindWeakLambda(this, [this, MyProfile, MyCombatant]
 		{
 			if (MyProfile && MyCombatant)
 			{

@@ -101,16 +101,6 @@ void APlayerCombatPawn::BeginDestroy()
 }
 
 
-void APlayerCombatPawn::Restart()
-{
-	Super::Restart();
-}
-
-void APlayerCombatPawn::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-}
-
 #pragma region Input
 
 // Called to bind functionality to input
@@ -120,8 +110,8 @@ void APlayerCombatPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAxis("Turn", this, &APlayerCombatPawn::Turn);
 	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerCombatPawn::TurnAtRate);
-	PlayerInputComponent->BindAxis("LookUp", this, &APlayerCombatPawn::LookUp);
-	PlayerInputComponent->BindAxis("LookUpRate", this, &APlayerCombatPawn::LookUpAtRate);
+	PlayerInputComponent->BindAxis("LookUpMouse", this, &APlayerCombatPawn::LookUp);
+	PlayerInputComponent->BindAxis("LookUpGamepad", this, &APlayerCombatPawn::LookUpAtRate);
 	PlayerInputComponent->BindAxis("ZoomIn", this, &APlayerCombatPawn::ZoomIn);
 
 	PlayerInputComponent->BindAction("TrpgMouse1", IE_Released, this, &APlayerCombatPawn::TrpgMouse1)/*.bConsumeInput = false*/;//I think the bConsumeInput was for the controller to pass down to the pawn, we don't need it here in the pawn
