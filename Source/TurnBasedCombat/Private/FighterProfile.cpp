@@ -2,6 +2,7 @@
 
 
 #include "FighterProfile.h"
+#include "BARPGPersona.h"
 #include "Inventory/Inventory.h"
 #include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
@@ -55,7 +56,7 @@ int32 UFighterProfile::AddAttributePoints(int32 PointsToAdd)
 
 bool UFighterProfile::AddAttributePoint(FString AttributeName)
 {
-	if (Attributes.AttributePoints > 0)
+ 	if (Attributes.AttributePoints > 0)
 	{
 		if (AttributeName == "Strength")
 		{
@@ -112,6 +113,7 @@ bool UFighterProfile::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bun
 {
 	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 	WroteSomething |= Channel->ReplicateSubobject(Inventory, *Bunch, *RepFlags);
+	WroteSomething |= Channel->ReplicateSubobject(Persona, *Bunch, *RepFlags);
 	if (Inventory)
 	{
 		WroteSomething |= Inventory->ReplicateSubobjects(Channel, Bunch, RepFlags);

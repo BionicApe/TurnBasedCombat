@@ -9,34 +9,45 @@
 #include "Components/WidgetSwitcher.h"
 #include "Components/Button.h"
 #include "UI/InventoryListWidget.h"
+#include "Components/SizeBox.h"
+#include "Components/CanvasPanel.h"
+#include "Inventory/InventoryCategory.h"
 
 bool UCombatantMenuWidget::Initialize()
 {
 	bool bResult = Super::Initialize();
 	if (bResult)
 	{
-		if (VisibilityAnimation)
-		{
-			FWidgetAnimationDynamicEvent OnAnimStart;
-			OnAnimStart.BindDynamic(this, &UCombatantMenuWidget::OnVisibilityAnimStart);
-			BindToAnimationStarted(VisibilityAnimation, OnAnimStart);
-		}
+		//if (VisibilityAnimation)
+		//{
+		//	FWidgetAnimationDynamicEvent OnAnimStart;
+		//	OnAnimStart.BindDynamic(this, &UCombatantMenuWidget::OnVisibilityAnimStart);
+		//	BindToAnimationStarted(VisibilityAnimation, OnAnimStart);
+		//}
 
-		if (VisibilityAnimation)
-		{
-			FWidgetAnimationDynamicEvent OnAnimEnd;
-			OnAnimEnd.BindDynamic(this, &UCombatantMenuWidget::OnVisibilityAnimEnd);
-			BindToAnimationFinished(VisibilityAnimation, OnAnimEnd);
-		}
+		//if (VisibilityAnimation)
+		//{
+		//	FWidgetAnimationDynamicEvent OnAnimEnd;
+		//	OnAnimEnd.BindDynamic(this, &UCombatantMenuWidget::OnVisibilityAnimEnd);
+		//	BindToAnimationFinished(VisibilityAnimation, OnAnimEnd);
+		//}
 
-		if (SelectWeaponsButton)
+		/*if (SelectWeaponsButton)
 		{
 			SelectWeaponsButton->OnClicked.AddDynamic(this, &UCombatantMenuWidget::OnSelectWeaponsButtonClicked);
-		}
+		}*/
 
 		if (FinishTurnButton)
 		{
 			FinishTurnButton->OnClicked.AddDynamic(this, &UCombatantMenuWidget::OnFinishTurnButtonClicked);
+		}
+		if (Hexagon_Special)
+		{
+			Hexagon_Special->OnClicked.AddDynamic(this, &UCombatantMenuWidget::OnSpecialButtonClicked);
+		}
+		if (RepeatActionButton)
+		{
+			RepeatActionButton->OnClicked.AddDynamic(this, &UCombatantMenuWidget::OnRepeatActionClicked);
 		}
 	}
 
@@ -54,14 +65,14 @@ APlayerCombatPawn* UCombatantMenuWidget::GetPlayerCombatPawn() const
 	return Cast<APlayerCombatPawn>(GetOwningPlayerPawn());
 }
 
-void UCombatantMenuWidget::TogglePlayVisibilityAnim()
-{
-	bWantsToBeVisible = !bWantsToBeVisible;
-	float const AnimationCurrentTime = GetAnimationCurrentTime(VisibilityAnimation);
-	PlayAnimation(VisibilityAnimation, AnimationCurrentTime, 1, bWantsToBeVisible ? EUMGSequencePlayMode::Forward : EUMGSequencePlayMode::Reverse, AnimPlaybackSpeed);
-}
+//void UCombatantMenuWidget::TogglePlayVisibilityAnim()
+//{
+//	bWantsToBeVisible = !bWantsToBeVisible;
+//	float const AnimationCurrentTime = GetAnimationCurrentTime(VisibilityAnimation);
+//	PlayAnimation(VisibilityAnimation, AnimationCurrentTime, 1, bWantsToBeVisible ? EUMGSequencePlayMode::Forward : EUMGSequencePlayMode::Reverse, AnimPlaybackSpeed);
+//}
 
-void UCombatantMenuWidget::OnVisibilityAnimEnd()
+void UCombatantMenuWidget::OnVisibilityAnimEnd_Implementation()
 {
 	if (!bWantsToBeVisible)
 	{
@@ -69,18 +80,40 @@ void UCombatantMenuWidget::OnVisibilityAnimEnd()
 	}
 }
 
-void UCombatantMenuWidget::OnVisibilityAnimStart()
+void UCombatantMenuWidget::OnVisibilityAnimStart_Implementation()
 {
 	if (bWantsToBeVisible)
 	{
 		WidgetSwitcher->SetActiveWidgetIndex(0);
 		Combat_Border_Size->SetVisibility(ESlateVisibility::Visible);
+		if (InventoryList)
+			InventoryList->RefreshList();
+		if (RepeatActionButton)
+		{
+			if (APlayerCombatPawn* PlayerCombatPawn = GetPlayerCombatPawn())
+			{
+				bool p = PlayerCombatPawn->CanPerformLastAction();
+				RepeatActionButton->SetIsEnabled(p);
+			}
+		}
+	}
+}
+
+void UCombatantMenuWidget::OnRepeatActionClicked()
+{
+	if (RepeatActionButton)
+	{
+		if (APlayerCombatPawn* PlayerCombatPawn = GetPlayerCombatPawn())
+		{
+			Combat_Border_Size->SetVisibility(ESlateVisibility::Hidden);
+			PlayerCombatPawn->Server_PerformLastAction();
+		}
 	}
 }
 
 void UCombatantMenuWidget::OnSelectWeaponsButtonClicked()
 {
-	InventoryList->RefreshList();
+	//InventoryList->RefreshList();
 	WidgetSwitcher->SetActiveWidget(WeaponsTab);
 	//WidgetSwitcher->SetActiveWidgetIndex(2);
 	//PlayAnimation(ShowWeaponsAnim, 0.f, 1, EUMGSequencePlayMode::Forward, AnimPlaybackSpeed);
@@ -92,4 +125,15 @@ void UCombatantMenuWidget::OnFinishTurnButtonClicked()
 	{
 		PlayerCombatPawn->RequestFinishTurn();
 	}
+}
+
+void UCombatantMenuWidget::OnSpecialButtonClicked()
+{
+	WidgetSwitcher->SetActiveWidget(Special);
+}
+
+void UCombatantMenuWidget::OnListItemByCategory(UInventoryCategory* Category)
+{
+	InventoryList->RefreshList(Category);
+	WidgetSwitcher->SetActiveWidget(WeaponsTab);
 }

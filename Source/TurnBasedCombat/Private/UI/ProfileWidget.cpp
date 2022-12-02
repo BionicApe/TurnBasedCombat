@@ -5,9 +5,15 @@
 
 #include "FighterProfile.h"
 
+#include "BARPGPersona.h"
+#include "BARPGAttribute.h"
+#include "BARPGModel.h"
+
 #include "Components/TextBlock.h"
 
 #include "Components/TrpgControlComponent.h"
+#include "Components/BARPGControlComponent.h"
+#include "Components/BaseRpgControlComponent.h"
 
 #include "Kismet/KismetTextLibrary.h"
 #include "TurnBasedCombatLib.h"
@@ -49,9 +55,14 @@ void UAttributeButton::OnAddAttributePointConfirmed(bool bIsConfirmed)
 {
 	if (bIsConfirmed)
 	{
-		if (UTrpgControlComponent* TrpgControlComp = UTurnBasedCombatLib::GetTrpgControlComp(GetOwningPlayer()))
+		//if (UTrpgControlComponent* TrpgControlComp = UTurnBasedCombatLib::GetTrpgControlComp(GetOwningPlayer()))
+		//{
+		//	//TrpgControlComp->AddAttributePoint(Profile, AttributeName);
+		//}
+
+		if (UBaseRpgControlComponent* BARPGControlComp = Cast<UBaseRpgControlComponent>(GetOwningPlayer()->GetComponentByClass(UBARPGControlComponent::StaticClass())))
 		{
-			TrpgControlComp->AddAttributePoint(Profile, AttributeName);
+			BARPGControlComp->ExpendAttributePoints(Persona, Persona->Model->AttributePointsAttributeKey, 1);
 		}
 	}
 }
@@ -63,43 +74,105 @@ bool UProfileWidget::Initialize()
 	bool bResult = Super::Initialize();
 	if (bResult)
 	{
-		if (AddDexterityButton)
+		if (AddDexterityButton) //TODO: REDO using dynamic information from BARPGModel
 		{
 			AddDexterityButton->AttributeName = TEXT("Dexterity");
 			AddDexterityButton->Profile = Profile;
+			AddDexterityButton->Persona = Persona;
 		}
 		if (AddVitalityButton)
 		{
 			AddVitalityButton->AttributeName = TEXT("Vitality");
 			AddVitalityButton->Profile = Profile;
+			AddVitalityButton->Persona = Persona;
 		}
 
 		if (AddStrengthButton)
 		{
 			AddStrengthButton->AttributeName = TEXT("Strength");
 			AddStrengthButton->Profile = Profile;
+			AddStrengthButton->Persona = Persona;
 		}
 
 		if (AddAgilityButton)
 		{
 			AddAgilityButton->AttributeName = TEXT("Agility");
 			AddAgilityButton->Profile = Profile;
+			AddAgilityButton->Persona = Persona;
 		}
 
 		if (AddIntelligenceButton)
 		{
 			AddIntelligenceButton->AttributeName = TEXT("Intelligence");
 			AddIntelligenceButton->Profile = Profile;
+			AddIntelligenceButton->Persona = Persona;
 		}
 		if (AddCharismaButton)
 		{
 			AddCharismaButton->AttributeName = TEXT("Charisma");
 			AddCharismaButton->Profile = Profile;
+			AddCharismaButton->Persona = Persona;
 		}
 
 		Refresh();
 	}
 	return bResult;
+}
+
+void UProfileWidget::SetPersona(UBARPGPersona* NewPersona)
+{
+	if (GEngine->GetNetMode(GetWorld()) == NM_DedicatedServer)
+	{
+		UE_LOG(LogTemp, Log, TEXT("I'm Server"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Log, TEXT("I'm Client"));
+	}
+
+	if (Persona != NewPersona)//Are different?
+	{
+		if (Persona)
+		{
+			//Remove old delegates
+			Persona->OnPersonaAttributesChanged.RemoveDynamic(this, &UProfileWidget::OnAttributesChanged);
+		}
+		Persona = NewPersona;//We set the new one!
+		if (Persona)
+		{
+			//add new delegates
+			Persona->OnPersonaAttributesChanged.AddDynamic(this, &UProfileWidget::OnAttributesChanged);
+		}
+
+		{//Set Persona to Button Attributes
+			if (AddDexterityButton)
+			{
+				AddDexterityButton->Persona = Persona;
+			}
+			if (AddVitalityButton)
+			{
+				AddVitalityButton->Persona = Persona;
+			}
+			if (AddStrengthButton)
+			{
+				AddStrengthButton->Persona = Persona;
+			}
+			if (AddAgilityButton)
+			{
+				AddAgilityButton->Persona = Persona;
+			}
+			if (AddIntelligenceButton)
+			{
+				AddIntelligenceButton->Persona = Persona;
+			}
+			if (AddCharismaButton)
+			{
+				AddCharismaButton->Persona = Persona;
+			}
+		}//End: Set Persona to Button Attributes
+
+		Refresh();
+	}
 }
 
 void UProfileWidget::SetProfile(UFighterProfile* NewProfile)
@@ -164,7 +237,7 @@ void UProfileWidget::SetProfile(UFighterProfile* NewProfile)
 
 void UProfileWidget::Refresh()
 {
-	if (Profile)
+	if (Profile && Persona)
 	{
 		if (IdTextBlock)
 		{
@@ -182,22 +255,30 @@ void UProfileWidget::Refresh()
 		{
 			ActionsPerTurnTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->ActionsPerTurn));
 		}
+			
+		FBARPGAttributeValue XPAttValue = Persona->FindAttributeValueByKey(Persona->Model->ExperienceAttributeKey);
 		//XP
 		if (XpTextBlock)
 		{
-			XpTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Xp));
+			XpTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(XPAttValue.Value));
 		}
+		
+		FBARPGAttributeValue LVLAttValue = Persona->FindAttributeValueByKey(Persona->Model->LevelAttributeKey);
+		int32 ExperienceRequired = Persona->Model->ExperienceRequiredPerLevel->GetFloatValue(LVLAttValue.Value);
+
 		if (XpToLevelUpTextBlock)
 		{
-			XpToLevelUpTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(100 - (Profile->Attributes.Xp % 100)));
+			XpToLevelUpTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(ExperienceRequired - XPAttValue.Value));
 		}
 		if (XPLevelTextBlock)
 		{
-			XPLevelTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.XPLevel));
+			//XPLevelTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.XPLevel));
+			XPLevelTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(LVLAttValue.Value));
 		}
 		if (XpProgressBar)
 		{
-			XpProgressBar->SetPercent(Profile->Attributes.GetPercentToNextLevel());
+			XpProgressBar->SetPercent(((float)XPAttValue.Value / (float)ExperienceRequired)); //If this was a inner lop, oh boy
+
 		}
 		//End XP
 
@@ -209,35 +290,40 @@ void UProfileWidget::Refresh()
 		//Attributes
 		if (AttributePointsTextBlock)
 		{
-			AttributePointsTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.AttributePoints));
+			//AttributePointsTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.AttributePoints));
+			int32 CurrentExpendedAttributePoints = Persona->FindAttributeValueByKey(Persona->Model->AttributePointsAttributeKey).Value;
+			int32 MaxAttributePoints = Persona->Model->AttributePointsPerLevel->GetFloatValue(LVLAttValue.Value);
+			AttributePointsTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(MaxAttributePoints - CurrentExpendedAttributePoints));
 		}
 		if (FelonyTextBlock)
 		{
 			FelonyTextBlock->SetText(UEnum::GetDisplayValueAsText(Profile->Attributes.Felony));
 		}
-		if (CharismaTextBlock)
+		if (StrengthTextBlock)
 		{
-			CharismaTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Charisma));
+			
+			FBARPGAttributeValue StrAttValue = Persona->FindAttributeValueByName(TEXT("Strength"));
+			StrengthTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(StrAttValue.Value)); //Todo, switch to names/attributes
 		}
 		if (DexterityTextBlock)
 		{
-			DexterityTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Dexterity));
-		}
-		if (IntelligenceTextBlock)
-		{
-			IntelligenceTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Intelligence));
-		}
-		if (AgilityTextBlock)
-		{
-			AgilityTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Agility));
+			FBARPGAttributeValue DexAttValue = Persona->FindAttributeValueByName(TEXT("Dexterity"));
+			DexterityTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(DexAttValue.Value));
 		}
 		if (VitalityTextBlock)
 		{
-			VitalityTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Vitality));
+			FBARPGAttributeValue HlthAttValue = Persona->FindAttributeValueByName(TEXT("HealthPoints"));
+			VitalityTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(HlthAttValue.Value));
 		}
-		if (StrengthTextBlock)
+		if (IntelligenceTextBlock)
 		{
-			StrengthTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(Profile->Attributes.Strength));
+			FBARPGAttributeValue IntAttValue = Persona->FindAttributeValueByName(TEXT("Intelligence"));
+			IntelligenceTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(IntAttValue.Value));
+		}
+		if (CharismaTextBlock)
+		{
+			FBARPGAttributeValue ChaAttValue = Persona->FindAttributeValueByName(TEXT("Charisma"));
+			CharismaTextBlock->SetText(UKismetTextLibrary::Conv_IntToText(ChaAttValue.Value));
 		}
 		//End Attributes
 		//Inventory

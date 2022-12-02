@@ -16,6 +16,8 @@ enum class EActionTypeValue_Trpg : uint8
 	SPECIAL		= 3
 };
 
+class ACombatant;
+
 /**
  * 
  */
@@ -27,7 +29,10 @@ class TURNBASEDCOMBAT_API UActionType_Trpg : public UActionType
 protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "ActionType")
-	int32 ActionPoints;
+	unsigned int ActionPoints;
+
+	UPROPERTY(EditDefaultsOnly, Category = "ActionType")
+	unsigned int Actions = 1;
 
 	UPROPERTY(EditDefaultsOnly, Category = "ActionType")
 	bool bExecuteOnEverything = true;
@@ -53,7 +58,10 @@ public:
 
 
 	UFUNCTION(BlueprintCallable, Category = "ActionType")
-	int32 GetActionPoints() const { return ActionPoints; } 
+	int32 GetActionPoints() const { return ActionPoints; }
+
+	UFUNCTION(BlueprintCallable, Category = "ActionType")
+	int32 GetActions() const { return Actions; }
 
 	UFUNCTION(BlueprintCallable, Category = "ActionType")
 	virtual bool Validate(FTrpgPerformActionRequest const &Request, FTrpgPerformActionResult& Result) const;
@@ -64,4 +72,5 @@ public:
 	virtual void PerformAction(FTrpgPerformActionRequest const &Request, FTrpgPerformActionResult& Result) const {}
 
 	virtual bool CanExecuteAction(AActor* ActionActor, AActor* ActionableActor) const override;
+	virtual bool CanExecuteAction(ACombatant* ActionActor, ACombatant* ActionableActor) const;
 };

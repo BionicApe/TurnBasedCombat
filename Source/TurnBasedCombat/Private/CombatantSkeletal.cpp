@@ -41,6 +41,8 @@ void ACombatantSkeletal::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 void ACombatantSkeletal::OnNewItemSelected(UInventoryItem* InventoryItem)
 {
 	Super::OnNewItemSelected(InventoryItem);
+	if (!InventoryItem)
+		return;
 	AnimIndex = InventoryItem->FightingStyle;
 }
 
@@ -58,5 +60,11 @@ void ACombatantSkeletal::OnDie(FActorKilled ActorKilledProperties)
 
 	//SkeletalComp->SetCollisionProfileName(TEXT("Ragdoll"));
 	//SkeletalComp->SetSimulatePhysics(true);
+}
+
+void ACombatantSkeletal::BeginPlay()
+{
+	Super::BeginPlay();
+	WidgetComp->InitWidget();
 }
 

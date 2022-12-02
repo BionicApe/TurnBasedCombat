@@ -9,6 +9,8 @@
 #include "PlayerCombatPawn.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStateChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemChange, UInventoryItem*, Item);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCombatantReady, ACombatant*, Combatant);
 
 class USpringArmComponent;
 class UStaticMeshComponent;
@@ -21,7 +23,7 @@ class APlayerController;
 class AFight;
 class IStrategistHUD;
 class UFighterProfile;
-
+class UCombatAuxiliarActionsSet;
 
 UCLASS(Config = BionicApe)
 class TURNBASEDCOMBAT_API APlayerCombatPawn : public APawn, public ITurnBasedStrategist, public IInventoryOwner
@@ -41,7 +43,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* CameraComp;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_Combatant)
 	ACombatant* Combatant;
 
 	UPROPERTY(Replicated)
@@ -64,16 +66,36 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintAssignable)
 	FOnStateChanged OnCombatFinished;
 
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable)
+	FOnItemChange OnItemChange;
 
+	UPROPERTY(VisibleAnywhere, BlueprintAssignable)
+	FOnCombatantReady OnCombatantReady;
 
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentInventoryItem)
+	UInventoryItem* CurrentInventoryItem = nullptr;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="TrpgCombat|Defaults|Item")
+	UInventoryItem* DefaultInventoryItem = nullptr;
 
 public:
 	
 	APlayerCombatPawn();
 
+	UInventoryItem* GetCurrentInventoryItem();
+	void SetCurrentInventoryItem(UInventoryItem* NewItem);
+	UInventoryItem * GetDefaultInventoryItem();
+
+	UFUNCTION(Server, Reliable)
+	void Server_PerformLastAction();
+
+	bool CanPerformLastAction();
+
 protected:
 	
 	virtual void BeginPlay() override;
+	
 
 public:
 	
@@ -91,6 +113,12 @@ public:
 
 	UFUNCTION()
 	void OnRep_IsMyTurn();
+
+	UFUNCTION()
+	void OnRep_CurrentInventoryItem();
+
+	UFUNCTION(Server, Reliable)
+	void Server_OnCombatantChangeItem(UInventoryItem* InventoryItem);
 
 #pragma region IInventoryOwner
 	void SetSelectedItem(UInventoryItem* InventoryItem) override;
@@ -147,7 +175,7 @@ public:
 
 #pragma region FocusTracer
 
-	UPROPERTY(Category = TrpgCombat, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere,Category = TrpgCombat, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))//, Replicated)
 	UFocusTracerCursorComponent* FocusTracer;
 
 	UFUNCTION()
@@ -161,10 +189,13 @@ public:
 #pragma region ITurnBasedStrategist
 	virtual void StartFight(AFight* NewFight) override;
 	virtual void StartTurn(UBAProfile* FighterProfile, ACombatant* NewCombatant) override;
+	virtual void Configure(UBAProfile* FighterProfile, ACombatant* NewCombatant) override;
+	bool ValidateAction(const UActionType* Action) override;
 	virtual void EndTurn() override;
 	UBAProfile* GetCurrentProfile() override { return Profile;}
 	void NotifyFightFinish(AFight* FinishedFight) override;
 	AFight* GetFight() override {return Fight;}
+	virtual ACombatant* GetCurrentCombatant() override { return Combatant; }
 #pragma endregion
 	
 	UFUNCTION(Client, Reliable)

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/DynamicMenu.h"
 #include "CombatantMenuWidget.generated.h"
 
 class APlayerCombatPawn;
@@ -13,12 +14,15 @@ class UBorder;
 class UWidgetSwitcher;
 class UButton;
 class UInventoryListWidget;
+class USizeBox;
+class UCanvasPanel;
+class UInventoryCategory;
 
 /**
  *
  */
 UCLASS()
-class TURNBASEDCOMBAT_API UCombatantMenuWidget : public UUserWidget
+class TURNBASEDCOMBAT_API UCombatantMenuWidget : public UDynamicMenu
 {
 	GENERATED_BODY()
 
@@ -33,7 +37,7 @@ public:
 	UWidgetSwitcher* WidgetSwitcher;
 
 	UPROPERTY(meta = (BindWidget))
-	UWidget* WeaponsTab;
+	USizeBox* WeaponsTab;
 
 	UPROPERTY(meta = (BindWidget))
 	UInventoryListWidget* InventoryList;
@@ -41,14 +45,23 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	UBorder* Combat_Border_Size;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidget))
 	UButton* SelectWeaponsButton;
 
 	UPROPERTY(meta = (BindWidget))
 	UButton* FinishTurnButton;
 
-	UPROPERTY(meta = (BindWidgetAnim), Transient)
-	UWidgetAnimation* VisibilityAnimation;
+	UPROPERTY(meta = (BindWidget))
+	UButton* RepeatActionButton;
+
+	UPROPERTY(meta = (BindWidget))
+	UButton* Hexagon_Special;
+
+	UPROPERTY(meta = (BindWidget))
+	UCanvasPanel* Special;
+
+	//UPROPERTY(meta = (BindWidgetAnim), Transient)
+	//UWidgetAnimation* VisibilityAnimation;
 
 	UPROPERTY(meta = (BindWidgetAnim), Transient)
 	UWidgetAnimation* ShowWeaponsAnim;
@@ -56,10 +69,10 @@ public:
 	//UPROPERTY(EditAnywhere, Config)
 	//TSubclassOf<class UWidget> InventoryListClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float AnimPlaybackSpeed = 3.f;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//float AnimPlaybackSpeed = 3.f;
 
-	bool bWantsToBeVisible = false;
+	//bool bWantsToBeVisible = false;
 
 public:
 
@@ -67,11 +80,11 @@ public:
 	virtual bool Initialize() override;
 	virtual void NativeConstruct() override;
 	APlayerCombatPawn* GetPlayerCombatPawn() const;
-	virtual void TogglePlayVisibilityAnim();
+	//virtual void TogglePlayVisibilityAnim();
 	UFUNCTION()
-	void OnVisibilityAnimEnd();
+	void OnVisibilityAnimEnd_Implementation() override;
 	UFUNCTION()
-	void OnVisibilityAnimStart();
+	void OnVisibilityAnimStart_Implementation() override;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ShowTrpgActionsWidget();
@@ -81,11 +94,21 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void ActionClicked();
+
+	UFUNCTION()
+	void OnRepeatActionClicked();
 	
 	UFUNCTION()
 	void OnSelectWeaponsButtonClicked();
 
 	UFUNCTION()
 	void OnFinishTurnButtonClicked();
+
+	UFUNCTION()
+	void OnSpecialButtonClicked();
+
+	UFUNCTION(Blueprintcallable)
+	void OnListItemByCategory(UInventoryCategory* Category);
+
 
 };

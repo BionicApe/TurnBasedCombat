@@ -16,8 +16,8 @@
 #include "EngineUtils.h"
 #include "Interfaces/ProfileAsignable.h"
 #include "GameFramework/PlayerController.h"
-#include <FighterProfile.h>
-#include <Config/TurnBasedCombatConfig.h>
+#include "FighterProfile.h"
+#include "Config/TurnBasedCombatConfig.h"
 #include "UObject/SoftObjectPtr.h"
 
 

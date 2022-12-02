@@ -12,6 +12,7 @@ class UInventory;
 class UInventoryItem;
 class UTeam;
 class ITurnBasedStrategist;
+class UBARPGPersona;
 
 UENUM(BlueprintType)
 enum class EFelonyType : uint8
@@ -93,7 +94,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttributesChanged);
  *
  */
 UCLASS()
-class TURNBASEDCOMBAT_API UFighterProfile : public UBAProfile, public IInventoryOwner
+class TURNBASEDCOMBAT_API UFighterProfile : public UBAProfile
 {
 	GENERATED_BODY()
 
@@ -104,13 +105,10 @@ public:
 	UInventory* Inventory;
 public:
 	UFUNCTION(BlueprintCallable)
-	virtual UInventory* GetInventory() const override { return Inventory; }
+	virtual UInventory* GetInventory() const { return Inventory; }
 	UFUNCTION(BlueprintCallable)
 	void SetInventory(UInventory* NewInventory) { Inventory = NewInventory; }
-	//IInventoryOwner
-	virtual void SetSelectedItem(UInventoryItem* InventoryItem) {} //TO DELETE!
-	virtual void GetInventoryItemsList(TArray<UInventoryItem*>& MyInventoryItems) const {} //TO DELETE!
-	//End IInventoryOwner
+
 #pragma endregion
 
 #pragma region Property_Team
@@ -193,6 +191,10 @@ public:
 	TScriptInterface<ITurnBasedStrategist> Strategist;
 
 #pragma endregion
+
+public:
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly)
+	UBARPGPersona* Persona;
 
 public:
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;

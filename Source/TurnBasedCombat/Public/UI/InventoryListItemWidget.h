@@ -9,7 +9,7 @@
 
 class UButton;
 class UInventoryItem;
-
+class UTextBlock;
 //TODO: Move this class to InventorySystem --BIG TODO--
 
 /**
@@ -28,6 +28,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UInventoryItem* InventoryItem;
 
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* AmountTextBlock;
+
 
 public:
 
@@ -37,6 +40,9 @@ public:
 
 	UFUNCTION()
 	void OnButtonClicked();
+
+	void Update();
+	void Update(UObject* ListItemObject);
 
 protected:
 

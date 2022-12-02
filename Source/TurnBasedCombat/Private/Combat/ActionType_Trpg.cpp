@@ -117,17 +117,34 @@ bool UActionType_Trpg::CanExecuteAction(AActor* ActionActor, AActor* ActionableA
 
 	if (ITurnBasedStrategist* Strategist = Cast<ITurnBasedStrategist>(ActionActor))
 	{
-		if (UBAProfile* SenderProfile = Strategist->GetCurrentProfile())
+		//if (UBAProfile* SenderProfile = Strategist->GetCurrentProfile())
+		if(ACombatant* SenderCombatant = Strategist->GetCurrentCombatant())
 		{
 			if (ACombatant* ReceiverCombatant = Cast<ACombatant>(ActionableActor))
 			{
-				if (AFight const* const Fight = ReceiverCombatant->Fight)
-				{
-					bool const bIsEnemy = Fight->AreEnemies(SenderProfile, ReceiverCombatant->Profile);
+				//if (AFight const* const Fight = ReceiverCombatant->Fight)
+				//{
+				//	bool const bIsEnemy = Fight->AreEnemies(SenderProfile, ReceiverCombatant->Profile);
 
-					return (bIsEnemy && bExecuteOnEnemy) || (!bIsEnemy && bExecuteOnAlly) || (bExecuteOnSelf && (SenderProfile == ReceiverCombatant->Profile));
-				}
+				//	return (bIsEnemy && bExecuteOnEnemy) || (!bIsEnemy && bExecuteOnAlly) || (bExecuteOnSelf && (SenderProfile == ReceiverCombatant->Profile));
+				//}
+				return CanExecuteAction(SenderCombatant, ReceiverCombatant);
 			}
+		}
+	}
+	return false;
+}
+
+bool UActionType_Trpg::CanExecuteAction(ACombatant* SenderCombatant, ACombatant* ReceiverCombatant) const
+{
+	UBAProfile* SenderProfile = SenderCombatant->GetBAProfile();
+	if (SenderProfile) 
+	{
+		if (AFight const* const Fight = ReceiverCombatant->Fight)
+		{
+			bool const bIsEnemy = Fight->AreEnemies(SenderProfile, ReceiverCombatant->GetBAProfile());
+
+			return (bIsEnemy && bExecuteOnEnemy) || (!bIsEnemy && bExecuteOnAlly) || (bExecuteOnSelf && (SenderProfile == ReceiverCombatant->GetBAProfile()));
 		}
 	}
 	return false;

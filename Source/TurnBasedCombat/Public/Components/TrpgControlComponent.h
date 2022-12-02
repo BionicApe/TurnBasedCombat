@@ -47,9 +47,9 @@ public:
 	UFUNCTION(Server, Reliable, BlueprintCallable)
 	void Server_AddAttributePoints(UFighterProfile* FighterProfile, AMockupFocusable* MockupFocusable);
 
-	UFUNCTION(BlueprintCallable)
-	void AddAttributePoint(UFighterProfile* FighterProfile, const FString& AttributeName);
-	UFUNCTION(Server, Reliable, BlueprintCallable)
-	void Server_AddAttributePoint(UFighterProfile* FighterProfile, const FString& AttributeName);
+	//UFUNCTION(BlueprintCallable)
+	//void AddAttributePoint(UFighterProfile* FighterProfile, const FString& AttributeName);
+	//UFUNCTION(Server, Reliable, BlueprintCallable)
+	//void Server_AddAttributePoint(UFighterProfile* FighterProfile, const FString& AttributeName);
 
 };

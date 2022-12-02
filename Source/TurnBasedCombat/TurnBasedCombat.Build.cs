@@ -47,7 +47,8 @@ public class TurnBasedCombat : ModuleRules
 				"MovieScene",
 				"InventorySystem",
 				"AIModule",
-				"BionicApeUI"
+				"BionicApeUI",
+				"FocusInteractions"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

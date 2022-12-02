@@ -29,7 +29,9 @@ public:
 	void StartFight(AFight* NewFight) override;
 
 	void StartTurn(UBAProfile* NewProfile, ACombatant* NewCombatant) override;
-
+	void Configure(UBAProfile* FighterProfile, ACombatant* NewCombatant) override {};
+	bool ValidateAction(const UActionType* Action) override { return true; };
+	virtual ACombatant* GetCurrentCombatant() override { return nullptr; }
 	void EndTurn() override;
 
 	UBAProfile* GetCurrentProfile() override { return nullptr; }

@@ -11,6 +11,7 @@ class UBAProfile;
 class AFight;
 class ACombatant;
 class UBAProfile;
+class UActionType;
 
 UINTERFACE(MinimalAPI)
 class UTurnBasedStrategist : public UInterface
@@ -27,9 +28,12 @@ public:
 	virtual void StartFight(AFight* Fight) = 0;
 	virtual void StartTurn(UBAProfile* FighterProfile, ACombatant* NewCombatant) = 0;
 	virtual void EndTurn() = 0;
+	virtual void Configure(UBAProfile* FighterProfile, ACombatant* NewCombatant) = 0;
 	virtual UBAProfile* GetCurrentProfile() = 0;
 	virtual void NotifyFightFinish(AFight* FinishedFight) = 0;
 	virtual AFight* GetFight() = 0;
+	virtual bool ValidateAction(const UActionType* Action)=0;
+	virtual ACombatant* GetCurrentCombatant()=0;
 	//virtual void GetBAProfiles(TSet<UBAProfile*>& OutProfiles) const = 0;
 	//virtual bool OwnsProfile(UBAProfile* Profile) const = 0;
 };

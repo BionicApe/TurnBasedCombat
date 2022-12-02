@@ -7,6 +7,7 @@
 #include "GameFramework/Pawn.h"
 #include "TrpgCombatTypes.h"
 #include "GameFramework/Actor.h"
+#include "Combatant.h"
 
 #define LOCTEXT_NAMESPACE "UActionType_TrpgAttack"
 
@@ -39,7 +40,10 @@ bool  UActionType_TrpgAttack::Validate(FTrpgPerformActionRequest const& Request,
 	//	//Add Message to know what's wrong
 	//	return false;
 	//}
-	return true;
+	ACombatant* Combatant = Cast<ACombatant>(Request.Receiver);
+	if (Combatant != nullptr && Combatant->IsDead())
+		return false;
+	return true;//CanExecuteAction(Request.Sender, Request.Receiver);
 }
 
 
@@ -63,6 +67,19 @@ void UActionType_TrpgAttack::PerformAction(FTrpgPerformActionRequest const& Requ
 		//	));
 
 	}
+}
+
+bool UActionType_TrpgAttack::CanExecuteAction(AActor* ActionActor, AActor* ActionableActor) const
+{
+	//The button will appear as disabled or disapear, not sure
+	bool bResult = Super::CanExecuteAction(ActionActor, ActionableActor);
+	if (bResult)
+	{
+		ACombatant* Combatant = Cast<ACombatant>(ActionableActor);
+		if (Combatant != nullptr && Combatant->IsDead())
+			bResult = false;
+	}
+	return bResult;
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -8,6 +8,7 @@
 
 class UTileView;
 class UInventoryItem;
+class UInventoryCategory;
 
 /**
  *
@@ -28,9 +29,30 @@ public:
 	UPROPERTY()
 	TArray<UInventoryItem*> MyInventoryItems;
 
+	UPROPERTY()
+	UInventoryCategory* PreviousCategory = nullptr;
+
 public:
 
 	virtual bool Initialize() override;
 
+
+	bool RefreshList(UInventoryCategory* Category);
+
 	bool RefreshList();
+
+protected:
+	UFUNCTION()
+	/**
+	* @brief Hidde the HUD
+	* 
+	*/
+	void Close();
+
+	/**
+	 * @brief Called when the widget of the items are loaded.
+	 * 
+	 * @param NewWidget: The widget 
+	 */
+	void WidgetLoaded(UUserWidget& NewWidget);
 };

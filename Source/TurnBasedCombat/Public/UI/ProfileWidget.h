@@ -12,6 +12,8 @@
 class UTextBlock;
 class UProgressBar;
 class UFighterProfile;
+class UBARPGPersona;
+class UBARPGAttribute;
 
 #pragma region AttributeButton
 
@@ -30,6 +32,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UFighterProfile* Profile;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UBARPGPersona* Persona;
 
 public:
 
@@ -57,7 +62,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UFighterProfile* Profile;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UBARPGPersona* Persona;
+
 public:
+
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UBARPGAttribute* ExperienceAttributeKey;*/
 
 	UPROPERTY(meta = (BindWidgetOptional))
 	UTextBlock* IdTextBlock;
@@ -145,6 +156,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetProfile(UFighterProfile* NewProfile);
+
+	UFUNCTION(BlueprintCallable)
+	void SetPersona(UBARPGPersona* NewPersona);
 
 	UFUNCTION(BlueprintCallable)
 	void Refresh();

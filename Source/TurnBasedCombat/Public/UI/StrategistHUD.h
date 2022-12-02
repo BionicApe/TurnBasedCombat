@@ -7,6 +7,8 @@
 #include "StrategistHUD.generated.h"
 
 class ACombatant;
+struct FFocusTraceInfo;
+struct FTrpgFightResults;
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
@@ -29,6 +31,8 @@ public:
 	virtual void ShowStartTurn() = 0;
 
 	virtual void ShowMenu(ACombatant* Combatant) = 0;
+
+	virtual void ShowActionsMenu(FFocusTraceInfo Info) = 0;
 	
 	virtual void ShowFightResults(FTrpgFightResults FightResults) = 0;
 };

@@ -29,7 +29,10 @@
 #include "TurnBasedCombatLog.h"
 #include "Inventory/InventorySlot.h"
 #include "Inventory/Inventory.h"
-
+#include "ActionableType.h"
+#include "Components/FocusableComponent.h"
+#include "ActionsSet.h"
+#include "Combat/ActionType_Trpg.h"
 const FInputModeGameAndUI APlayerCombatPawn::GameModeAndUIInputMode = FInputModeGameAndUI().SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock).SetHideCursorDuringCapture(true);
 
 APlayerCombatPawn::APlayerCombatPawn()
@@ -58,7 +61,56 @@ APlayerCombatPawn::APlayerCombatPawn()
 
 	bReplicates = true;//Epic says don't use SetReplicates in the constructor.
 	SetReplicateMovement(false);
+
 	//SetAutonomousProxy(true);
+}
+
+UInventoryItem* APlayerCombatPawn::GetCurrentInventoryItem()
+{
+	return CurrentInventoryItem;
+}
+
+void APlayerCombatPawn::SetCurrentInventoryItem(UInventoryItem* NewItem)
+{
+	CurrentInventoryItem = NewItem;
+}
+
+UInventoryItem * APlayerCombatPawn::GetDefaultInventoryItem()
+{
+	return DefaultInventoryItem;
+}
+
+void APlayerCombatPawn::Server_PerformLastAction_Implementation()
+{
+	if (!Combatant)
+		return;
+	FCombatantLastAction LastAction = Combatant->GetLastActionInfo();
+	const UActionType* Action = Cast<UActionType>(LastAction.Action);
+	if (Action)
+	{
+		SetSelectedItem(LastAction.Item);
+		Fight->PerformAction(Action, this, Combatant, LastAction.Target);
+	}
+}
+
+bool APlayerCombatPawn::CanPerformLastAction()
+{
+	if (!Combatant)
+		return false;
+	FCombatantLastAction LastAction = Combatant->GetLastActionInfo();
+	if (LastAction.Action == nullptr)
+		return false;
+	SetSelectedItem(LastAction.Item);
+	if (!LastAction.Action->CanExecuteAction(Combatant, LastAction.Target))
+	{
+		return false;
+	}
+	FTrpgPerformActionRequest Request;
+	Request.Action = LastAction.Action;
+	Request.Receiver = LastAction.Target;
+	Request.Sender = Combatant;
+	FTrpgPerformActionResult Result;
+	return Combatant->ValidateAction(LastAction.Action, Request, Result);
 }
 
 void APlayerCombatPawn::BeginPlay()
@@ -68,7 +120,12 @@ void APlayerCombatPawn::BeginPlay()
 	if (IsLocallyControlled() && TryToSetHUD())
 	{
 		StrategistHUD->ShowStartCombat();
+
 	}
+	
+
+
+	//SetSelectedItem(Combatant->InventoryComp->GetInventory()->getinve);
 
 }
 
@@ -80,6 +137,8 @@ void APlayerCombatPawn::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(APlayerCombatPawn, Profile);
 	DOREPLIFETIME(APlayerCombatPawn, Fight);
 	DOREPLIFETIME(APlayerCombatPawn, bHackIsCombatFinished);
+	DOREPLIFETIME(APlayerCombatPawn, CurrentInventoryItem);
+	//DOREPLIFETIME(APlayerCombatPawn, FocusTracer);
 }
 
 APlayerController* APlayerCombatPawn::GetPlayerController() const
@@ -97,6 +156,13 @@ void APlayerCombatPawn::BeginDestroy()
 	//		Subsystem->RemoveStrategist(this);
 	//	}
 	//}
+	if (DefaultInventoryItem)
+	{
+		if (Combatant && Combatant->InventoryComp)
+		{
+			Combatant->InventoryComp->Inventory->Remove(GetDefaultInventoryItem(), 1, 0);
+		}
+	}
 	Super::BeginDestroy();
 }
 
@@ -108,8 +174,8 @@ void APlayerCombatPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("Turn", this, &APlayerCombatPawn::Turn);
-	PlayerInputComponent->BindAxis("TurnRate", this, &APlayerCombatPawn::TurnAtRate);
+	PlayerInputComponent->BindAxis("TurnRightMouse", this, &APlayerCombatPawn::Turn);
+	PlayerInputComponent->BindAxis("TurnRightGamepad", this, &APlayerCombatPawn::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUpMouse", this, &APlayerCombatPawn::LookUp);
 	PlayerInputComponent->BindAxis("LookUpGamepad", this, &APlayerCombatPawn::LookUpAtRate);
 	PlayerInputComponent->BindAxis("ZoomIn", this, &APlayerCombatPawn::ZoomIn);
@@ -168,7 +234,16 @@ void APlayerCombatPawn::TrpgMouse1()
 {
 	FFocusPerformAction FocusPerformAction;
 
-	FocusTracer->PerformAction(0);
+	//FocusTracer->PerformAction(0);
+
+	//TODO Ponerlo bonito
+	if ( (StrategistHUD || TryToSetHUD()) && Combatant->IsMyTurn())
+	{
+
+		//FFocusTraceInfo f = FocusTracer->FocusTraceInfo;
+		StrategistHUD->ShowActionsMenu(FocusTracer->FocusTraceInfo);
+
+	}
 
 	//if (FocusTracer->GetPerformActionWithIndex(0, FocusPerformAction))
 	//{
@@ -186,7 +261,7 @@ void APlayerCombatPawn::TrpgMouse1()
 
 void APlayerCombatPawn::TrpgMouse2()
 {
-	if (StrategistHUD || TryToSetHUD())
+	if ( (StrategistHUD || TryToSetHUD()) && Combatant->IsMyTurn())
 	{
 		StrategistHUD->ShowMenu(Combatant);
 	}
@@ -198,6 +273,8 @@ void APlayerCombatPawn::TrpgMouse2()
 
 void APlayerCombatPawn::OnNewFocus(const FFocusTraceInfo& Info)
 {
+	if (!Combatant || !Combatant->IsMyTurn())
+		return;
 	//SetMouseCursorWidget(EMouseCursor::Crosshairs, Widget);//Here's another way to create a widget on the fly
 	if (APlayerController* PC = GetPlayerController())
 	{
@@ -205,9 +282,15 @@ void APlayerCombatPawn::OnNewFocus(const FFocusTraceInfo& Info)
 
 		if (AActor* CurrentFocusedActor = FocusTracer->GetFocusedActor())
 		{
-			if (Fight->Arena)
+			FFocusPerformAction FocusPerformAction;
+			bool value = FocusTracer->GetPerformActionWithIndex(0, FocusPerformAction);
+
+			if (value && FocusPerformAction.FocusedActor == CurrentFocusedActor)
 			{
-				Fight->Arena->SetSelectedActor(CurrentFocusedActor);
+				if (Fight->Arena)
+				{
+					Fight->Arena->SetSelectedActor(CurrentFocusedActor);
+				}
 			}
 		}
 	}
@@ -237,12 +320,20 @@ void APlayerCombatPawn::StartFight(AFight* NewFight)
 {
 	Fight = NewFight;
 	SetActorTransform(Fight->Arena->GetOrbitCameraTransform());
+	//APlayerController* PC = GetPlayerController();
+	//if(!PC)
+	//	PC = UBAMultiplayerSubsystem::GetPlayerControllerFromUser(this, Profile->BAUser);
+	//if (PC)
+	//{
+	//	PC->Possess(this);
+	//}
 }
 
 void APlayerCombatPawn::OnRep_Fight()
 {
+	if (!Fight)
+		return;
 	SetActorTransform(Fight->Arena->GetOrbitCameraTransform());
-
 	if (IsLocallyControlled() && (StrategistHUD || TryToSetHUD()))
 	{
 		StrategistHUD->ShowStartCombat();
@@ -250,10 +341,46 @@ void APlayerCombatPawn::OnRep_Fight()
 }
 void APlayerCombatPawn::StartTurn(UBAProfile* NewProfile, ACombatant* NewCombatant)
 {
-	Combatant = NewCombatant;
-	Profile = NewProfile;
+	Configure(NewProfile, NewCombatant);
 	bIsMyTurn = true;
 }
+
+void APlayerCombatPawn::Configure(UBAProfile* NewProfile, ACombatant* NewCombatant)
+{
+	//if (GetDefaultInventoryItem())
+	//{
+	//	if (Combatant && Combatant->InventoryComp)
+	//	{
+	//		Combatant->InventoryComp->Inventory->Remove(GetDefaultInventoryItem(), 1, 0);
+	//	}
+	//}
+	Profile = NewProfile;
+
+
+	if(Combatant)
+		Combatant->OnDefaultItemSelected.RemoveDynamic(this, &APlayerCombatPawn::Server_OnCombatantChangeItem);
+	//Combatant
+	Combatant = NewCombatant;
+	Combatant->OnDefaultItemSelected.AddUniqueDynamic(this, &APlayerCombatPawn::Server_OnCombatantChangeItem);
+	if (GetDefaultInventoryItem() && Combatant)
+	{
+		Combatant->Server_SetDefaultInventoryItem(GetDefaultInventoryItem());
+		SetSelectedItem(GetDefaultInventoryItem());
+	}
+}
+
+bool APlayerCombatPawn::ValidateAction(const UActionType* Action)
+{
+	//TODO mirar que el objeto que se esta usando tiene esa accion.
+	bool ReturnedValue = false;
+	//if (Combatant)
+	//{
+	//	ReturnedValue = Combatant->InventoryComp->SelectedItem->ActionsSet.Contains(Action);
+	//}
+	return ReturnedValue;
+}
+
+
 
 void APlayerCombatPawn::EndTurn()
 {
@@ -264,6 +391,8 @@ void APlayerCombatPawn::NotifyFightFinish(AFight* FinishedFight)
 {
 	Client_NotifyFightFinish();
 }
+
+
 
 void APlayerCombatPawn::Client_NotifyFightFinish_Implementation()
 {
@@ -281,7 +410,7 @@ void APlayerCombatPawn::Client_NotifyFightFinish_Implementation()
 
 void APlayerCombatPawn::OnRep_Combatant()
 {
-
+	OnCombatantReady.Broadcast(Combatant);
 }
 
 void APlayerCombatPawn::OnRep_IsMyTurn()
@@ -295,19 +424,47 @@ void APlayerCombatPawn::OnRep_IsMyTurn()
 	}
 }
 
+void APlayerCombatPawn::OnRep_CurrentInventoryItem()
+{
+	OnItemChange.Broadcast(CurrentInventoryItem);
+}
+
+void APlayerCombatPawn::Server_OnCombatantChangeItem_Implementation(UInventoryItem* InventoryItem)
+{
+	if (InventoryItem == nullptr)
+		return;
+	FocusTracer->SetNewActionsSetDeleteOlds(InventoryItem->ActionsSet);
+	SetCurrentInventoryItem(InventoryItem);
+}
+
 void APlayerCombatPawn::SetSelectedItem(UInventoryItem* InventoryItem)
 {
+	if (Combatant && GetLocalRole() == ENetRole::ROLE_AutonomousProxy)
+	{
+		Combatant->InventoryComp->SetSelectedItem(InventoryItem);//Local
+	}
 	Server_SetSelectedItem(InventoryItem);
+	//ENetRole r = GetLocalRole();
+
 }
 
 
 void APlayerCombatPawn::Server_SetSelectedItem_Implementation(UInventoryItem* InventoryItem)
 {
+	//if (FocusTracer->ActionsSets.IsEmpty())
+	//{
+	//}
 	if (Combatant)
 	{
 		if (Combatant->InventoryComp->SetSelectedItem(InventoryItem))
 		{
 			FocusTracer->SetNewActionsSetDeleteOlds(InventoryItem->ActionsSet);
+			//ActionsSet->Action->SetActionsSets(InventoryItem->ActionsSet);
+			//for (UActionsSet* ActionSet : InventoryItem->ActionsSet)
+			//{
+			//	FocusTracer->SetNewActionsSetDeleteOlds(ActionSet);
+			//}
+			SetCurrentInventoryItem(InventoryItem);
 		}
 	}
 }

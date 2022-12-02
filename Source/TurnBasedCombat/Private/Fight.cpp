@@ -16,12 +16,16 @@
 #include "TrpgCombatTypes.h"
 #include "BAProfile.h"
 #include "Containers/Map.h"
+#include "Components/HealthComponent.h"
 #include <BAMultiplayerSubsystem.h>
 #include <FighterProfile.h>
 #include <Engine/World.h>
 
 #include "TurnBasedCombatLog.h"
 
+
+//For testing
+#include "Kismet/KismetArrayLibrary.h"
 
 // Sets default values
 AFight::AFight() : Super()
@@ -106,24 +110,47 @@ void AFight::StartFight()
 
 		for (UFighterProfile* Profile : Team->Profiles)
 		{
+			////Spawn A new Combatant
+			//ACombatant* Combatant = GetWorld()->SpawnActor<ACombatant>(CombatantClass, Arena->GetPawnTransform(TeamIndex, CombatantIndex));
+			////BAMultiplayerSpawnpawn o spawnactor
+			//Combatant->SetBAProfile(Profile);
+			//Combatants.Add(Profile, Combatant);
+			//Combatant->Fight = this;
+			//Combatant->GenerateID();
+
+			const FTransform SpawnTransform = Arena->GetPawnTransform(TeamIndex, CombatantIndex);
 			//Spawn A new Combatant
-			ACombatant* Combatant = GetWorld()->SpawnActor<ACombatant>(CombatantClass, Arena->GetPawnTransform(TeamIndex, CombatantIndex));
+			ACombatant* Combatant = GetWorld()->SpawnActorDeferred<ACombatant>(CombatantClass, SpawnTransform);
 			Combatant->SetBAProfile(Profile);
 			Combatants.Add(Profile, Combatant);
+			//TODO ADD Persona to profile
 			Combatant->Fight = this;
+			Combatant->GenerateID();
+			Combatant->FinishSpawning(SpawnTransform);
+			//UHealthComponent* HealthComp = Cast<UHealthComponent>(Combatant->GetComponentByClass(UHealthComponent::StaticClass()));
+			//if (HealthComp)
+			//{
+			//	HealthComp->OnHealthChangedWithOwner.AddUniqueDynamic(this, &AFight::OnCombatantHealthChange);
+			//}
+
+			
+
+
+			//CombatantsInfo.Add(Combatant, FFightCombatantsInfo(Combatant->Profile->ProfileName, CombatantIndex));
 
 			//TurnBasedCombatSubsystem->ProfileStartFight(Profile, this);
 			//EXTRACTED FROM TurnBasedCombatSubsystem->ProfileStartFight
 
 			if (AActor* ExplorationActor = TurnBasedCombatSubsystem->GetExplorationActor(Profile))
 			{
+				SavedPositions.Add(Profile, ExplorationActor->GetTransform());
 				ExplorationActor->Destroy();
 			}
 
 			if (Profile->IsPlayerMainProfile())
 			{
-				if (!Profile->Strategist)//We don't have the strategist already created
-				{
+				//if (true || !Profile->Strategist)//We don't have the strategist already created
+				//{
 
 					APlayerController* PC = UBAMultiplayerSubsystem::GetPlayerControllerFromUser(this, Profile->BAUser);
 					if (!PC)
@@ -155,12 +182,14 @@ void AFight::StartFight()
 						UE_LOG(LogTurnBasedCombat, Error, TEXT("UTurnBasedCombatSubsystem::ProfileStartFight() PlayerCombatPawnClass is not a ITurnBasedStrategist"));
 						return;
 					}
-				}
+					Profile->Strategist->Configure(Profile, Combatant);
+				//}
 			}
 
 			if (Profile->Strategist)
 			{
 				Profile->Strategist->StartFight(this);
+
 			}
 			else {
 				UE_LOG(LogTemp, Error, TEXT("Profile doesn't have an strategist assigned! %s"), *Profile->GetName());
@@ -168,10 +197,13 @@ void AFight::StartFight()
 
 			//END EXTRACTED FROM TurnBasedCombatSubsystem->ProfileStartFight
 
-			int32 const NewTurnIndex = Turns.Emplace();
-			FFightTurn& Turn = Turns[NewTurnIndex];
-			Turn.Combatant = Combatant;
-			Turn.Profile = Profile;
+//#pragma region AddCombatantTurn
+//			int32 const NewTurnIndex = Turns.Emplace();
+//			FFightTurn& Turn = Turns[NewTurnIndex];
+//			Turn.Combatant = Combatant;
+//			Turn.Profile = Profile;
+//			Turn.CombatantInfo = FFightCombatantsInfo(Combatant->Profile->ProfileName, CombatantIndex);
+//#pragma endregion AddCombatantTurn
 			//Turn.Profile->Strategist = TurnBasedCombatSubsystem->GetStrategist(Profile);
 			CombatantIndex++;
 		}
@@ -183,7 +215,6 @@ void AFight::StartFight()
 
 	FightState = EFightState::FIGHTING;
 	SetTurnState(ETurnState::CAN_RECEIVE_ACTIONS);
-
 	TurnIndex = -1;
 	NotifyNextTurn();
 }
@@ -213,25 +244,100 @@ void AFight::TestDelayNotifyTurn()
 	//}
 }
 
+void AFight::NewRound()
+{
+	int CombatantIndex = 0;
+	Turns.Empty();
+	TurnIndex = 0;
+
+	for (const TPair<UBAProfile*, ACombatant*>& pair : Combatants)
+	{
+		UFighterProfile* Profile = Cast<UFighterProfile>(pair.Key);
+		ACombatant* Combatant = pair.Value;
+		//Si esta muerto no se incluye en la lista
+		//if(Combatant)
+		int32 const NewTurnIndex = Turns.Emplace();
+		FFightTurn& Turn = Turns[NewTurnIndex];
+		Turn.Combatant = Combatant;
+		Turn.Profile = Profile;
+		Turn.CombatantInfo = FFightCombatantsInfo(Combatant->Profile->ProfileName, CombatantIndex, Combatant->ID);
+		CombatantIndex++;
+	}
+
+	//Ahora siempre pone al jugador el primero y la IA va cambiando de orden de forma aleatoria
+	const int32 NumShuffles = Turns.Num() - 1;
+	for (int32 i = 1; i <= NumShuffles; ++i)
+	{
+		//if (Turns[i].CombatantInfo.CombatantName == "Malote")
+		//{
+		//	int32 SwapIdx = 0;//FMath::RandRange(i, NumShuffles);
+		//	Turns[i].CombatantInfo.Pos = SwapIdx;
+		//	Turns[SwapIdx].CombatantInfo.Pos = i;
+		//	Turns.Swap(i, SwapIdx);
+		//}
+		//if (Turns[i].CombatantInfo.CombatantName == "Heisto")
+		//{
+		//	int32 SwapIdx = 1;//FMath::RandRange(i, NumShuffles);
+		//	Turns[i].CombatantInfo.Pos = SwapIdx;
+		//	Turns[SwapIdx].CombatantInfo.Pos = i;
+		//	Turns.Swap(i, SwapIdx);
+		//}
+		int32 SwapIdx = FMath::RandRange(i, NumShuffles);
+		Turns[i].CombatantInfo.Pos = SwapIdx;
+		Turns[SwapIdx].CombatantInfo.Pos = i;
+		Turns.Swap(i, SwapIdx);
+	}
+	//TODO Delete random order, the order depends on a position factor that the combatants will have.
+
+
+	NetMulticast_OnNewRoundEvent(Turns);
+	
+}
+
 void AFight::NotifyNextTurn()
 {
-	if (Turns.Num() == 0)
+	if (TurnIndex >= 0 && TurnIndex < Turns.Num() && Turns[TurnIndex].Combatant)
 	{
-		UE_LOG(LogTurnBasedCombat, Log, TEXT("NotifyNextTurn Doesn't have a turn"));
-		return;
+		Turns[TurnIndex].Combatant->EndTurnUpdateValues();
 	}
 
-	TurnIndex = (TurnIndex + 1) % Turns.Num();
-	FFightTurn& NewTurn = Turns[TurnIndex];
-
-	if (NewTurn.Combatant)
+	TurnIndex++;
+	if (Turns.Num() == 0 || TurnIndex < 0 || TurnIndex >= Turns.Num())
 	{
-		NewTurn.Combatant->StartTurnUpdateValues();
+		NewRound();
+		if (Turns.Num() == 0)
+		{
+			UE_LOG(LogTurnBasedCombat, Log, TEXT("NotifyNextTurn Doesn't have a turn"));
+			return;
+		}
 	}
-	if (NewTurn.Profile->Strategist)
+	
+	
+	for(; TurnIndex  < Turns.Num(); TurnIndex++)
 	{
-		NewTurn.Profile->Strategist->StartTurn(NewTurn.Profile, NewTurn.Combatant);
+		FFightTurn& NewTurn = Turns[TurnIndex];
+		if (!NewTurn.Combatant->IsDead())
+		{
+			if (NewTurn.Combatant)
+			{
+				NewTurn.Combatant->StartTurnUpdateValues();
+			}
+			if (NewTurn.Profile->Strategist)
+			{
+				NewTurn.Profile->Strategist->StartTurn(NewTurn.Profile, NewTurn.Combatant);
+			}
+			break;
+		}
 	}
+	if (TurnIndex >= Turns.Num())
+	{
+		NotifyNextTurn();
+	}
+	else 
+	{
+		NetMulticast_OnNewTurnEvent(TurnIndex);
+	}
+	
 }
 
 
@@ -344,13 +450,25 @@ bool AFight::PerformAction(const UActionType* Action, ITurnBasedStrategist* Stra
 
 		FTrpgPerformActionResult Result;
 
-		if (!TrpgAction->Validate(Request, Result))
+		if (Sender->GetBAProfile()->IsPlayerMainProfile())
 		{
-			OnCombatLog.Broadcast(Result.Log);
-			return false;
+			if (!Sender->ValidateAction(TrpgAction, Request, Result))
+			{
+				OnCombatLog.Broadcast(Result.Log);
+				return false;
+			}
+		}
+		else //This is for the AI, it is necesary? We controll the AI
+		{
+			if (!TrpgAction->Validate(Request, Result))
+			{
+				OnCombatLog.Broadcast(Result.Log);
+				return false;
+			}
 		}
 
 		SetTurnState(ETurnState::PERFORMING_ACTION_STAGE);
+		Sender->StartPerformingAction(TrpgAction, Receiver);
 
 		//We save the latest action so we can repeat it
 		//Turns[TurnIndex].LastActionPerformed = TrpgAction;
@@ -387,7 +505,8 @@ void AFight::CommitAction(FTrpgPerformActionRequest Request)
 		if (ACombatant* SenderCombatant = Cast <ACombatant>(Request.Sender))
 		{
 			Action->PerformAction(Request, Result);
-			PayAction(Action, SenderCombatant);
+			//PayAction(Action, SenderCombatant);
+			SenderCombatant->PayActionWithoutValidation(Action);//The validation has been done in PerformAction.
 		}
 	}
 
@@ -418,9 +537,10 @@ void AFight::CommitAction(FTrpgPerformActionRequest Request)
 	else// Combat is not finished 
 	{
 		SetTurnState(ETurnState::CAN_RECEIVE_ACTIONS);
-
+		
 		if (FFightTurn const* FFightTurn = GetCurrentFightTurn())
 		{
+			FFightTurn->Combatant->EndPerformingAction();
 			if (FFightTurn->Combatant && (FFightTurn->Combatant->ActionPoints <= 0 || FFightTurn->Combatant->RemainingActions <= 0))
 			{
 				NotifyNextTurn();
@@ -455,19 +575,44 @@ void AFight::FinishTurn(ITurnBasedStrategist* Strategist, ACombatant* Combatant)
 	NotifyNextTurn();
 }
 
+//void AFight::NetMulticast_OnCombatantDieOrRevive_Implementation(ACombatant* Combatant, bool IsDead)
+//{
+//	OnCombatantDieOrRevive.Broadcast(Combatant, IsDead);
+//}
+
+//void AFight::OnCombatantHealthChange(int32 OldHealth, int32 NewHealth, AActor* HealthOwner)
+//{
+//	ACombatant* Combatant = Cast<ACombatant>(HealthOwner);
+//	if(Combatant == nullptr)
+//		return;
+//	//Ver si todos estan muertos y se acaba el combate, esto solo debe ejecutarlo el servidor.
+//	if (NewHealth <= 0 || (OldHealth <= 0 && NewHealth > 0))
+//	{
+//		NetMulticast_OnCombatantDieOrRevive(Combatant, Combatant->IsDead());
+//	}
+//}
+
+TArray<FFightTurn> AFight::GetTurns()
+{
+	return Turns;
+	// TODO: insert return statement here
+}
+
 bool AFight::PayAction(UActionType_Trpg const* TrpgAction, ACombatant* Combatant)
 {
-	bool const bHasEnoughActionPoints = Combatant->ActionPoints >= TrpgAction->GetActionPoints();
-	bool const bHastEnoughRemainingActions = Combatant->RemainingActions > 0;
+	//bool const bHasEnoughActionPoints = Combatant->ActionPoints >= TrpgAction->GetActionPoints();
+	//bool const bHastEnoughRemainingActions = Combatant->RemainingActions > 0;
 
-	if (bHasEnoughActionPoints && bHastEnoughRemainingActions)
-	{
-		Combatant->ActionPoints -= TrpgAction->GetActionPoints();
-		Combatant->RemainingActions--;
-		return true;
-	}
+	//if (bHasEnoughActionPoints && bHastEnoughRemainingActions)
+	//{
+	//	//Combatant->ActionPoints -= TrpgAction->GetActionPoints();
+	//	
+	//	Combatant->RemainingActions--;
+	//	return true;
+	//}
+	//return false;
 
-	return false;
+	return Combatant->TryPerformAction() && Combatant->TryConsumeActionPoints(TrpgAction->GetActionPoints());
 }
 
 bool AFight::CheckCombatHasFinished()
@@ -530,8 +675,16 @@ void AFight::TerminateFight()
 
 			if (UBAProfile* Profile = Cast<UBAProfile>(CombatantIt.Key()))
 			{
-				TurnBasedCombatSubsystem->StartExplorationMode(Profile, this, IsDead, CurrentTransform);
+				FTransform Transform = CurrentTransform;
+				if (SavedPositions.Contains(Profile))
+				{
+					Transform = SavedPositions[Profile];
+				}
+				TurnBasedCombatSubsystem->StartExplorationMode(Profile, this, IsDead, Transform);
 			}
+			AActor* Pawn = Cast<AActor>(Combatant->Profile->Strategist.GetObject());
+			if (Pawn)
+				Pawn->Destroy();
 			Combatant->Destroy();
 		}
 	}
@@ -543,6 +696,27 @@ void AFight::TerminateFight()
 	{
 		Arena->Reset();
 	}
-
 	Destroy();
+}
+
+void AFight::OnRep_TurnIndex()
+{
+	//FFightTurnInfo Info = FFightTurnInfo();
+	if (TurnIndex < 0 || TurnIndex >= Turns.Num())
+		return;
+}
+
+void AFight::NetMulticast_OnNewRoundEvent_Implementation(const TArray<FFightTurn>& NTurns)
+{
+	if (GEngine->GetNetMode(GetWorld()) == NM_DedicatedServer)
+	{
+		return;
+	}
+	OnNewRound.Broadcast(NTurns);
+
+}
+
+void AFight::NetMulticast_OnNewTurnEvent_Implementation(int Turn)
+{
+	OnNewTurnCombatant.Broadcast(Turns[Turn]);
 }

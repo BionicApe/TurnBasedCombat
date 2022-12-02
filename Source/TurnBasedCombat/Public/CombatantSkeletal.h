@@ -40,8 +40,12 @@ public:
 
 	virtual void OnNewItemSelected(UInventoryItem* InventoryItem) override;
 
+
 	UFUNCTION()
 	void OnRep_AnimIndex();
 
 	virtual void OnDie(FActorKilled ActorKilledProperties) override;
+
+protected:
+	virtual void BeginPlay() override;
 };

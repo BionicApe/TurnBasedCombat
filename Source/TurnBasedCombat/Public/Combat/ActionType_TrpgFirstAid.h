@@ -26,6 +26,7 @@ public:
 	
 	UFUNCTION(BlueprintCallable, Category = "ActionType")
 	float GetHealAmount() const { return HealAmount; }
-
+	virtual bool Validate(FTrpgPerformActionRequest const& Request, FTrpgPerformActionResult& Result) const override;
 	virtual void PerformAction(FTrpgPerformActionRequest const& Request, FTrpgPerformActionResult& Result) const override;
+	virtual bool CanExecuteAction(AActor* ActionActor, AActor* ActionableActor) const override;
 };
